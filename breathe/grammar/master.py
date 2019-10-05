@@ -20,8 +20,6 @@ class Master(Grammar):
         # Dict[Tuple[bool], SubGrammar]
         # Key of dictionary is the contexts the rule matched
         self.grammar_map = {}
-        # List[SubGrammar]
-        self._subgrammars = []
 
         # Dict[str, ElementBase]
         self.global_extras = {}
@@ -119,7 +117,6 @@ class Master(Grammar):
         print("Rule added for %s" % ", ".join([str(c) for c, b in zip(self.contexts, matches) if b]))
 
         self.grammar_map[matches] = subgrammar
-        self._subgrammars.append(subgrammar)
         subgrammar.load()
 
     def process_begin(self, executable, title, handle):

@@ -1,6 +1,12 @@
 # Breathe
 A convenient API for creating dragonfly grammars with automatic CCR (continuous command recognition).
 
+```
+git clone https://github.com/mrob95/Breathe.git
+cd Breathe
+pip install .
+```
+
 ```python
 from dragonfly import *
 from breathe import Breathe
