@@ -1,8 +1,9 @@
 # Breathe
-A convenient API for creating dragonfly grammars.
+A convenient API for creating dragonfly grammars with automatic CCR (continuous command recognition).
 
 ```python
-from breathe import *
+from dragonfly import *
+from breathe import Breathe
 
 Breathe.add_commands(
     context = AppContext(title=".py"),
