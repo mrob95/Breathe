@@ -1,4 +1,3 @@
-from dragonfly import *
-from .grammar.ccrmerger import Master
+from .grammar.master import Master
 
 Breathe = Master()

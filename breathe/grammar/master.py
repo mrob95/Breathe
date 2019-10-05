@@ -55,14 +55,14 @@ class Master(Grammar):
             if defaults is None:
                 for e in extras:
                     assert isinstance(e, ElementBase)
-                full_extras.update({e.name: e})
+                    full_extras.update({e.name: e})
             else:
                 assert isinstance(defaults, dict)
                 for e in extras:
                     assert isinstance(e, ElementBase)
-                if not e.has_default() and e.name in defaults:
-                    e._default = defaults[e.name]
-                full_extras.update({e.name: e})
+                    if not e.has_default() and e.name in defaults:
+                        e._default = defaults[e.name]
+                    full_extras.update({e.name: e})
 
         assert isinstance(mapping, dict)
         children = []
