@@ -24,6 +24,7 @@ def test_core_commands():
         }
     )
     assert len(Breathe.core_commands) == 4
+    assert len(Breathe.core_commands[0]._extras) == 2
 
 def test_context_commands():
     Breathe.add_commands(
@@ -36,14 +37,18 @@ def test_context_commands():
                 "four": "4",
                 "five": "5",
                 "six": "6",
-            })
-        ]
+            }),
+        ],
+        {
+            "num": ""
+        }
     )
     assert len(Breathe.context_commands) == 1
     assert len(Breathe.contexts) == 1
     assert len(Breathe.context_commands[0]) == 1
     # Two global extras plus one specific
     assert len(Breathe.context_commands[0][0]._extras) == 3
+    assert Breathe.context_commands[0][0]._extras["num"].has_default()
 
 
 def test_noccr_commands():
@@ -69,6 +74,8 @@ def test_merging():
     assert len(Breathe.grammar_map) == 2
     assert (True,) in Breathe.grammar_map
     active_subgrammar = Breathe.grammar_map[(True,)]
+    assert active_subgrammar.enabled
     assert len(active_subgrammar.rules) == 2
     active_rule = active_subgrammar.rules[0]
+    assert active_rule.active
     assert len(active_rule.element._child._children) == 5
