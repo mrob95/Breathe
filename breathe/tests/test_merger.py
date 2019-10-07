@@ -1,9 +1,14 @@
 from dragonfly import *
+import pytest
 
-engine = get_engine("text")
 from breathe import Master
+import time
+engine = get_engine("text")
+Breathe = Master(engine=engine)
 
-Breathe = Master()
+class TText(Text):
+    def _execute(self, data):
+        pass
 
 def test_global_extras():
     Breathe.add_global_extras(
@@ -17,10 +22,10 @@ def test_core_commands():
     Breathe.add_commands(
         None,
         {
-            "test one": Text("1"),
-            "test two": Text("2"),
-            "test three": Text("3"),
-            "test [<n>]": Key("c-t:%(n)s"),
+            "test one": TText("1"),
+            "test two": TText("2"),
+            "test three": TText("3"),
+            "banana [<n>]": TText("banana") * Repeat("n"),
         }
     )
     assert len(Breathe.core_commands) == 4
@@ -30,7 +35,7 @@ def test_context_commands():
     Breathe.add_commands(
         AppContext("notepad"),
         {
-            "test <num>": Text("%(num)s"),
+            "test [<num>]": TText("%(num)s"),
         },
         [
             Choice("num", {
@@ -55,13 +60,13 @@ def test_noccr_commands():
     Breathe.add_commands(
         AppContext("firefox"),
         {
-            "test <text>": Text("%(text)s"),
+            "test <text>": TText("%(text)s"),
         },
         ccr=False
     )
     assert len(engine.grammars) == 2
 
-def test_merging():
+def test_merging1():
     Breathe.process_begin("chrome", "", "")
     assert len(Breathe.grammar_map) == 1
     assert (False,) in Breathe.grammar_map
@@ -69,7 +74,11 @@ def test_merging():
     assert len(active_subgrammar.rules) == 2
     active_rule = active_subgrammar.rules[0]
     assert len(active_rule.element._child._children) == 4
+    engine.mimic(["test", "three", "test", "two", "banana"])
+    with pytest.raises(MimicFailure):
+        engine.mimic(["test", "three", "test", "four"])
 
+def test_merging2():
     Breathe.process_begin("notepad", "", "")
     assert len(Breathe.grammar_map) == 2
     assert (True,) in Breathe.grammar_map
@@ -79,3 +88,5 @@ def test_merging():
     active_rule = active_subgrammar.rules[0]
     assert active_rule.active
     assert len(active_rule.element._child._children) == 5
+    with pytest.raises(MimicFailure):
+        engine.mimic(["test", "three", "test", "twelve"])

@@ -8,7 +8,7 @@ class Master(Grammar):
 
     MAX_REPETITIONS = 16
 
-    def __init__(self):
+    def __init__(self, **kwargs):
         self.count = 0
         # List[Compound]
         self.core_commands = []
@@ -24,7 +24,7 @@ class Master(Grammar):
         # Dict[str, ElementBase]
         self.global_extras = {}
 
-        Grammar.__init__(self, "Merger", context=None)
+        Grammar.__init__(self, "Merger", context=None, **kwargs)
 
         self.add_rule(Rule("necessary",
             Compound("this should never be recognised", value=Text("ooops")), exported=True))
