@@ -1,10 +1,9 @@
 from dragonfly import *
 import pytest
-
-from breathe import Master
-import time
+from breathe import Breathe
+from breathe.errors import CommandSkippedWarning
+import warnings
 engine = get_engine("text")
-Breathe = Master(engine=engine)
 
 class TText(Text):
     def _execute(self, data):
@@ -12,10 +11,9 @@ class TText(Text):
 
 def test_global_extras():
     Breathe.add_global_extras(
-        IntegerRef("n", 1, 10, 1),
         Dictation("text")
     )
-    assert len(Breathe.global_extras) == 2
+    assert len(Breathe.global_extras) == 1
     assert "text" in Breathe.global_extras
 
 def test_core_commands():
@@ -26,7 +24,8 @@ def test_core_commands():
             "test two": TText("2"),
             "test three": TText("3"),
             "banana [<n>]": TText("banana") * Repeat("n"),
-        }
+        },
+        [IntegerRef("n", 1, 10, 1),]
     )
     assert len(Breathe.core_commands) == 4
     assert len(Breathe.core_commands[0]._extras) == 2
@@ -51,10 +50,25 @@ def test_context_commands():
     assert len(Breathe.context_commands) == 1
     assert len(Breathe.contexts) == 1
     assert len(Breathe.context_commands[0]) == 1
-    # Two global extras plus one specific
-    assert len(Breathe.context_commands[0][0]._extras) == 3
+    assert len(Breathe.context_commands[0][0]._extras) == 2
     assert Breathe.context_commands[0][0]._extras["num"].has_default()
 
+
+def test_nomapping_commands():
+    Breathe.add_commands(
+        AppContext("code.exe"),
+        {},
+    )
+
+def test_no_extra():
+    with warnings.catch_warnings(record=True) as w:
+        warnings.simplefilter("always")
+        Breathe.add_commands(
+            AppContext("code.exe"),
+            {"test that <nonexistent_extra>": TText("%(nonexistent_extra)s")},
+        )
+        assert len(w) == 1
+        assert issubclass(w[0].category, CommandSkippedWarning)
 
 def test_noccr_commands():
     Breathe.add_commands(

@@ -2,7 +2,9 @@ from dragonfly import Grammar, Rule, Text, ElementBase, Function, Context, Alter
 from ..rules import RepeatRule, SimpleRule
 from .subgrammar import SubGrammar
 from ..elements import BoundCompound
+from ..errors import CommandSkippedWarning
 from six import string_types
+import warnings
 
 class Master(Grammar):
 
@@ -43,7 +45,7 @@ class Master(Grammar):
             Add a set of commands which can be recognised continuously.
         """
 
-        if mapping is None:
+        if not mapping:
             return
 
         # Global extras may be overridden
@@ -72,7 +74,11 @@ class Master(Grammar):
                 c = BoundCompound(spec, extras=full_extras, value=value)
                 children.append(c)
             except Exception as e:
-                print(e)
+                # No need to raise, we can just skip this command
+                # Usually due to missing extras
+                warnings.warn(str(e), CommandSkippedWarning)
+        if not children:
+            return
 
         if not ccr:
             rule = SimpleRule(
