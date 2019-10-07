@@ -1,6 +1,6 @@
 from dragonfly import *
 
-from ..elements import BoundCompound
+from breathe.elements import BoundCompound
 
 def test_bound_compound():
     c1 = BoundCompound(

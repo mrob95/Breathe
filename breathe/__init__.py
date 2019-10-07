@@ -1,3 +1,5 @@
 from .grammar.master import Master
+import sys
 
-Breathe = Master()
+if not hasattr(sys, "_called_from_test"):
+    Breathe = Master()
