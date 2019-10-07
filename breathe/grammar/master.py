@@ -1,10 +1,20 @@
-from dragonfly import Grammar, Rule, Text, ElementBase, Function, Context, Alternative, Compound
+from dragonfly import (
+    Grammar,
+    Rule,
+    Text,
+    ElementBase,
+    Function,
+    Context,
+    Alternative,
+    Compound,
+)
 from ..rules import RepeatRule, SimpleRule
 from .subgrammar import SubGrammar
 from ..elements import BoundCompound
 from ..errors import CommandSkippedWarning
 from six import string_types
 import warnings
+
 
 class Master(Grammar):
 
@@ -28,8 +38,13 @@ class Master(Grammar):
         # Dict[str, ElementBase]
         self.global_extras = {}
 
-        self.add_rule(Rule("necessary",
-            Compound("this should never be recognised", value=Text("ooops")), exported=True))
+        self.add_rule(
+            Rule(
+                "necessary",
+                Compound("this should never be recognised", value=Text("ooops")),
+                exported=True,
+            )
+        )
 
         self.load()
 
@@ -40,7 +55,9 @@ class Master(Grammar):
         self.count += 1
         return str(self.count)
 
-    def add_commands(self, context=None, mapping=None, extras=None, defaults=None, ccr=True):
+    def add_commands(
+        self, context=None, mapping=None, extras=None, defaults=None, ccr=True
+    ):
         """Add a set of commands which can be recognised continuously.
 
         Keyword Arguments:
@@ -88,10 +105,8 @@ class Master(Grammar):
 
         if not ccr:
             rule = SimpleRule(
-                element=Alternative(children),
-                context=context,
-                exported=True
-                )
+                element=Alternative(children), context=context, exported=True
+            )
             grammar = Grammar("NonCCR" + self.counter())
             grammar.add_rule(rule)
             grammar.load()
@@ -126,7 +141,6 @@ class Master(Grammar):
         rule = RepeatRule("Repeater%s" % self.counter(), matched_commands)
         subgrammar = SubGrammar("SG%s" % self.counter())
         subgrammar.add_rule(rule)
-        print("Rule added for %s" % ", ".join([str(c) for c, b in zip(self.contexts, matches) if b]))
 
         self.grammar_map[matches] = subgrammar
         subgrammar.load()
@@ -139,7 +153,9 @@ class Master(Grammar):
 
             Enable the subgrammar which matches the window, and disable all others.
         """
-        active_contexts = tuple([c.matches(executable, title, handle) for c in self.contexts])
+        active_contexts = tuple(
+            [c.matches(executable, title, handle) for c in self.contexts]
+        )
 
         if active_contexts not in self.grammar_map:
             self.add_repeater(active_contexts)
