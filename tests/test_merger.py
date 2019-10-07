@@ -60,6 +60,7 @@ def test_noccr_commands():
     Breathe.add_commands(
         AppContext("firefox"),
         {
+            "dictation <text>": TText("%(text)s"),
             "testing static": TText("Static"),
         },
         ccr=False
@@ -89,6 +90,7 @@ def test_merging2():
 def test_recognition():
     engine.mimic(["test", "three", "test", "two", "banana"])
     engine.mimic(["testing", "static"], executable="firefox")
+    engine.mimic(["dictation", "TESTING"], executable="firefox")
 
     with pytest.raises(MimicFailure):
         engine.mimic(["test", "three", "test", "four"])
