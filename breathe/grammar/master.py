@@ -11,6 +11,8 @@ class Master(Grammar):
     MAX_REPETITIONS = 16
 
     def __init__(self, **kwargs):
+        Grammar.__init__(self, "Merger", context=None, **kwargs)
+
         self.count = 0
         # List[Compound]
         self.core_commands = []
@@ -26,8 +28,6 @@ class Master(Grammar):
         # Dict[str, ElementBase]
         self.global_extras = {}
 
-        Grammar.__init__(self, "Merger", context=None, **kwargs)
-
         self.add_rule(Rule("necessary",
             Compound("this should never be recognised", value=Text("ooops")), exported=True))
 
@@ -41,8 +41,14 @@ class Master(Grammar):
         return str(self.count)
 
     def add_commands(self, context=None, mapping=None, extras=None, defaults=None, ccr=True):
-        """
-            Add a set of commands which can be recognised continuously.
+        """Add a set of commands which can be recognised continuously.
+
+        Keyword Arguments:
+            context {Context} -- Context in which these commands will be active, if None, commands will be global (default: {None})
+            mapping {dict} -- Dictionary of rule specs to dragonfly Actions (default: {None})
+            extras {list} -- Extras which will be available for these commands (default: {None})
+            defaults {dict} -- Defaults for the extras, if necessary (default: {None})
+            ccr {bool} -- Whether these commands should be recognised continuously (default: {True})
         """
 
         if not mapping:
