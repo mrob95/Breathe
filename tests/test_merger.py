@@ -35,7 +35,7 @@ def test_context_commands():
     Breathe.add_commands(
         AppContext("notepad"),
         {
-            "test [<num>]": TText("%(num)s"),
+            "test [<num>]": lambda num: TText(num).execute(),
         },
         [
             Choice("num", {
