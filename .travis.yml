@@ -5,7 +5,8 @@ python:
 
 install:
   - pip install .
+  - pip install pytest pytest-cov
 
 script:
   # Run the default test suite.
-  - pytest
+  - pytest --cov-report term-missing --cov=breathe tests/

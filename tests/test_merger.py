@@ -104,6 +104,8 @@ def test_merging2():
 def test_recognition():
     engine.mimic(["test", "three", "test", "two", "banana"])
     engine.mimic(["testing", "static"], executable="firefox")
+    with pytest.raises(MimicFailure):
+        engine.mimic(["dictation", "TESTING"])
     engine.mimic(["dictation", "TESTING"], executable="firefox")
 
     with pytest.raises(MimicFailure):
