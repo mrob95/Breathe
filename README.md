@@ -1,4 +1,4 @@
-# Breathe
+# Breathe [![Build Status](https://travis-ci.org/mrob95/Breathe.svg?branch=master)](https://travis-ci.org/mrob95/Breathe)
 A convenient API for creating dragonfly grammars with automatic CCR (continuous command recognition).
 
 ```
