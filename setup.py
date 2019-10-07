@@ -1,13 +1,13 @@
-from setuptools import setup, find_packages
+from setuptools import setup
 
 setup(
     name="Breathe",
     version="0.1",
-    description="Speech recognition extension library",
+    description="Dragonfly command API",
     author="Mike Roberts",
     author_email="mike.roberts.2k10@googlemail.com",
-    license="MIT",
-    #   url              = "",
+    license="LICENSE.txt",
+    url="https://github.com/mrob95/Breathe",
     packages=["breathe"],
     install_requires=["dragonfly2"],
 )
