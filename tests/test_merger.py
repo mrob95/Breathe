@@ -60,7 +60,7 @@ def test_noccr_commands():
     Breathe.add_commands(
         AppContext("firefox"),
         {
-            "test <text>": TText("%(text)s"),
+            "testing static": TText("Static"),
         },
         ccr=False
     )
@@ -74,9 +74,6 @@ def test_merging1():
     assert len(active_subgrammar.rules) == 2
     active_rule = active_subgrammar.rules[0]
     assert len(active_rule.element._child._children) == 4
-    engine.mimic(["test", "three", "test", "two", "banana"])
-    with pytest.raises(MimicFailure):
-        engine.mimic(["test", "three", "test", "four"])
 
 def test_merging2():
     Breathe.process_begin("notepad", "", "")
@@ -88,5 +85,11 @@ def test_merging2():
     active_rule = active_subgrammar.rules[0]
     assert active_rule.active
     assert len(active_rule.element._child._children) == 5
+
+def test_recognition():
+    engine.mimic(["test", "three", "test", "two", "banana"])
+    engine.mimic(["testing", "static"], executable="firefox")
+
     with pytest.raises(MimicFailure):
-        engine.mimic(["test", "three", "test", "twelve"])
+        engine.mimic(["test", "three", "test", "four"])
+    engine.mimic(["test", "three", "test", "four"], executable="notepad")
