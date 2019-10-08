@@ -124,7 +124,7 @@ def test_manual_context():
 
 def test_manual_context_noccr():
     Breathe.add_commands(
-        ManualContext("test"),
+        ManualContext("test") | AppContext("italy"),
         {"spaghetti": TText("bolognese")},
         ccr=False
     )
@@ -136,3 +136,4 @@ def test_manual_context_noccr():
     with pytest.raises(MimicFailure):
         engine.mimic(["spaghetti"])
         engine.mimic(["pizza", "banana"])
+    # engine.mimic(["spaghetti"], executable="italy")
