@@ -46,6 +46,9 @@ class Master(Grammar):
 
         self.load()
 
+    #------------------------------------------------
+    # Loading helpers
+
     def counter(self):
         """
             Generate numbers for unique naming of rules and grammars
@@ -87,6 +90,22 @@ class Master(Grammar):
                 warnings.warn(str(e), CommandSkippedWarning)
         return children
 
+    def check_for_manuals(self, context):
+        if isinstance(context, ManualContext):
+            if context.name in self.manual_context_dictlist:
+                # Everything we want to enable with this command
+                # should be referencing the same object
+                context = self.manual_context_dictlist[context.name]
+            else:
+                self.manual_context_dictlist[context.name] = context
+        elif hasattr(context, "_children"):
+            for i in range(len(context._children)):
+                context._children[i] = self.check_for_manuals(context._children[i])
+        return context
+
+    #------------------------------------------------
+    # API
+
     def add_commands(
         self, context=None, mapping=None, extras=None, defaults=None, ccr=True
     ):
@@ -109,14 +128,7 @@ class Master(Grammar):
         if not children:
             return
 
-        if isinstance(context, ManualContext):
-            if context.name in self.manual_context_dictlist:
-                # Everything we want to enable with this command
-                # should be referencing the same object
-                # TODO: Logical versions
-                context = self.manual_context_dictlist[context.name]
-            else:
-                self.manual_context_dictlist[context.name] = context
+        context = self.check_for_manuals(context)
 
         if not ccr:
             rule = SimpleRule(
@@ -147,6 +159,9 @@ class Master(Grammar):
         for e in extras:
             assert isinstance(e, ElementBase)
             self.global_extras.update({e.name: e})
+
+    #------------------------------------------------
+    # Runtime grammar management
 
     def add_repeater(self, matches):
         """
