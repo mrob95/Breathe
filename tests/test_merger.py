@@ -108,7 +108,6 @@ def test_recognition():
     with pytest.raises(MimicFailure):
         engine.mimic(["dictation", "TESTING"])
     # engine.mimic(["dictation", "TESTING"], executable="firefox")
-
     with pytest.raises(MimicFailure):
         engine.mimic(["test", "three", "test", "four"])
     # engine.mimic(["test", "three", "test", "four"], executable="notepad")
@@ -122,20 +121,18 @@ def test_manual_context():
         engine.mimic(["pizza", "pizza"])
     engine.mimic(["enable", "test"])
     engine.mimic(["pizza", "banana"])
-    engine.mimic(["disable", "test"])
-    with pytest.raises(MimicFailure):
-        engine.mimic(["pizza"])
 
 def test_manual_context_noccr():
     Breathe.add_commands(
-        ManualContext("test noccr"),
+        ManualContext("test"),
         {"spaghetti": TText("bolognese")},
         ccr=False
     )
-    with pytest.raises(MimicFailure):
-        engine.mimic(["spaghetti"])
-    engine.mimic(["enable", "test noccr"])
+    # Loaded rule should be referencing the original
+    # "test" context loaded above, which should already be
+    # active
     engine.mimic(["spaghetti"])
-    engine.mimic(["disable", "test noccr"])
+    engine.mimic(["disable", "test"])
     with pytest.raises(MimicFailure):
         engine.mimic(["spaghetti"])
+        engine.mimic(["pizza", "banana"])

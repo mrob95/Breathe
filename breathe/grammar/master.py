@@ -110,7 +110,13 @@ class Master(Grammar):
             return
 
         if isinstance(context, ManualContext):
-            self.manual_context_dictlist[context.name] = context
+            if context.name in self.manual_context_dictlist:
+                # Everything we want to enable with this command
+                # should be referencing the same object
+                # TODO: Logical versions
+                context = self.manual_context_dictlist[context.name]
+            else:
+                self.manual_context_dictlist[context.name] = context
 
         if not ccr:
             rule = SimpleRule(
@@ -138,7 +144,9 @@ class Master(Grammar):
         """
         if len(extras) == 1 and isinstance(extras[0], list):
             extras = extras[0]
-        self.global_extras.update({e.name: e for e in extras})
+        for e in extras:
+            assert isinstance(e, ElementBase)
+            self.global_extras.update({e.name: e})
 
     def add_repeater(self, matches):
         """
@@ -171,8 +179,6 @@ class Master(Grammar):
         active_contexts = tuple(
             [c.matches(executable, title, handle) for c in self.contexts]
         )
-
-        # print(active_contexts)
 
         if active_contexts not in self.grammar_map:
             self.add_repeater(active_contexts)
