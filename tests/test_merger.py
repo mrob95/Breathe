@@ -1,20 +1,31 @@
-from dragonfly import *
+from dragonfly import (
+    get_engine,
+    Text as TextBase,
+    Dictation,
+    IntegerRef,
+    MimicFailure,
+    AppContext,
+    Choice,
+    Repeat,
+)
 import pytest
 from breathe import Breathe
 from breathe.errors import CommandSkippedWarning
 import warnings
+
 engine = get_engine("text")
 
-class TText(Text):
+
+class TText(TextBase):
     def _execute(self, data):
         pass
 
+
 def test_global_extras():
-    Breathe.add_global_extras(
-        Dictation("text")
-    )
+    Breathe.add_global_extras(Dictation("text"))
     assert len(Breathe.global_extras) == 1
     assert "text" in Breathe.global_extras
+
 
 def test_core_commands():
     Breathe.add_commands(
@@ -25,27 +36,18 @@ def test_core_commands():
             "test three": TText("3"),
             "banana [<n>]": TText("banana") * Repeat("n"),
         },
-        [IntegerRef("n", 1, 10, 1),]
+        [IntegerRef("n", 1, 10, 1)],
     )
     assert len(Breathe.core_commands) == 4
     assert len(Breathe.core_commands[0]._extras) == 2
 
+
 def test_context_commands():
     Breathe.add_commands(
         AppContext("notepad"),
-        {
-            "test [<num>]": lambda num: TText(num).execute(),
-        },
-        [
-            Choice("num", {
-                "four": "4",
-                "five": "5",
-                "six": "6",
-            }),
-        ],
-        {
-            "num": ""
-        }
+        {"test [<num>]": lambda num: TText(num).execute()},
+        [Choice("num", {"four": "4", "five": "5", "six": "6"})],
+        {"num": ""},
     )
     assert len(Breathe.context_commands) == 1
     assert len(Breathe.contexts) == 1
@@ -55,10 +57,8 @@ def test_context_commands():
 
 
 def test_nomapping_commands():
-    Breathe.add_commands(
-        AppContext("code.exe"),
-        {},
-    )
+    Breathe.add_commands(AppContext("code.exe"), {})
+
 
 def test_no_extra():
     with warnings.catch_warnings(record=True) as w:
@@ -70,16 +70,15 @@ def test_no_extra():
         assert len(w) == 1
         assert issubclass(w[0].category, CommandSkippedWarning)
 
+
 def test_noccr_commands():
     Breathe.add_commands(
         AppContext("firefox"),
-        {
-            "dictation <text>": TText("%(text)s"),
-            "testing static": TText("Static"),
-        },
-        ccr=False
+        {"dictation <text>": TText("%(text)s"), "testing static": TText("Static")},
+        ccr=False,
     )
     assert len(engine.grammars) == 2
+
 
 def test_merging1():
     Breathe.process_begin("chrome", "", "")
@@ -89,6 +88,7 @@ def test_merging1():
     assert len(active_subgrammar.rules) == 2
     active_rule = active_subgrammar.rules[0]
     assert len(active_rule.element._child._children) == 4
+
 
 def test_merging2():
     Breathe.process_begin("notepad", "", "")
@@ -101,13 +101,14 @@ def test_merging2():
     assert active_rule.active
     assert len(active_rule.element._child._children) == 5
 
+
 def test_recognition():
     engine.mimic(["test", "three", "test", "two", "banana"])
-    engine.mimic(["testing", "static"], executable="firefox")
+    # engine.mimic(["testing", "static"], executable="firefox")
     with pytest.raises(MimicFailure):
         engine.mimic(["dictation", "TESTING"])
-    engine.mimic(["dictation", "TESTING"], executable="firefox")
+    # engine.mimic(["dictation", "TESTING"], executable="firefox")
 
     with pytest.raises(MimicFailure):
         engine.mimic(["test", "three", "test", "four"])
-    engine.mimic(["test", "three", "test", "four"], executable="notepad")
+    # engine.mimic(["test", "three", "test", "four"], executable="notepad")

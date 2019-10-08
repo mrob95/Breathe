@@ -1,4 +1,13 @@
-from dragonfly import Grammar, Rule, Text, ElementBase, Function, Context, Alternative, Compound
+from dragonfly import (
+    Grammar,
+    Rule,
+    Text,
+    ElementBase,
+    Function,
+    Context,
+    Alternative,
+    Compound,
+)
 from ..rules import RepeatRule, SimpleRule
 from .subgrammar import SubGrammar
 from ..elements import BoundCompound
@@ -6,11 +15,14 @@ from ..errors import CommandSkippedWarning
 from six import string_types
 import warnings
 
+
 class Master(Grammar):
 
     MAX_REPETITIONS = 16
 
     def __init__(self, **kwargs):
+        Grammar.__init__(self, "Merger", context=None, **kwargs)
+
         self.count = 0
         # List[Compound]
         self.core_commands = []
@@ -26,10 +38,13 @@ class Master(Grammar):
         # Dict[str, ElementBase]
         self.global_extras = {}
 
-        Grammar.__init__(self, "Merger", context=None, **kwargs)
-
-        self.add_rule(Rule("necessary",
-            Compound("this should never be recognised", value=Text("ooops")), exported=True))
+        self.add_rule(
+            Rule(
+                "necessary",
+                Compound("this should never be recognised", value=Text("ooops")),
+                exported=True,
+            )
+        )
 
         self.load()
 
@@ -40,9 +55,17 @@ class Master(Grammar):
         self.count += 1
         return str(self.count)
 
-    def add_commands(self, context=None, mapping=None, extras=None, defaults=None, ccr=True):
-        """
-            Add a set of commands which can be recognised continuously.
+    def add_commands(
+        self, context=None, mapping=None, extras=None, defaults=None, ccr=True
+    ):
+        """Add a set of commands which can be recognised continuously.
+
+        Keyword Arguments:
+            context {Context} -- Context in which these commands will be active, if None, commands will be global (default: {None})
+            mapping {dict} -- Dictionary of rule specs to dragonfly Actions (default: {None})
+            extras {list} -- Extras which will be available for these commands (default: {None})
+            defaults {dict} -- Defaults for the extras, if necessary (default: {None})
+            ccr {bool} -- Whether these commands should be recognised continuously (default: {True})
         """
 
         if not mapping:
@@ -82,9 +105,14 @@ class Master(Grammar):
 
         if not ccr:
             rule = SimpleRule(
+<<<<<<< HEAD
                 element=Alternative(children),
                 context=context
                 )
+=======
+                element=Alternative(children), context=context, exported=True
+            )
+>>>>>>> 7472cb0cf5d64cc162cb46a04b79fc6286483e68
             grammar = Grammar("NonCCR" + self.counter())
             grammar.add_rule(rule)
             grammar.load()
@@ -119,7 +147,6 @@ class Master(Grammar):
         rule = RepeatRule("Repeater%s" % self.counter(), matched_commands)
         subgrammar = SubGrammar("SG%s" % self.counter())
         subgrammar.add_rule(rule)
-        print("Rule added for %s" % ", ".join([str(c) for c, b in zip(self.contexts, matches) if b]))
 
         self.grammar_map[matches] = subgrammar
         subgrammar.load()
@@ -132,7 +159,9 @@ class Master(Grammar):
 
             Enable the subgrammar which matches the window, and disable all others.
         """
-        active_contexts = tuple([c.matches(executable, title, handle) for c in self.contexts])
+        active_contexts = tuple(
+            [c.matches(executable, title, handle) for c in self.contexts]
+        )
 
         if active_contexts not in self.grammar_map:
             self.add_repeater(active_contexts)
