@@ -7,10 +7,11 @@ from dragonfly import (
     Context,
     Alternative,
     Compound,
+    DictList,
 )
-from ..rules import RepeatRule, SimpleRule
+from ..rules import RepeatRule, SimpleRule, ContextSwitcher
 from .subgrammar import SubGrammar
-from ..elements import BoundCompound
+from ..elements import BoundCompound, ManualContext
 from ..errors import CommandSkippedWarning
 from six import string_types
 import warnings
@@ -38,12 +39,9 @@ class Master(Grammar):
         # Dict[str, ElementBase]
         self.global_extras = {}
 
+        self.manual_context_dictlist = DictList("manual_contexts")
         self.add_rule(
-            Rule(
-                "necessary",
-                Compound("this should never be recognised", value=Text("ooops")),
-                exported=True,
-            )
+            ContextSwitcher(self.manual_context_dictlist)
         )
 
         self.load()
@@ -102,6 +100,9 @@ class Master(Grammar):
                 warnings.warn(str(e), CommandSkippedWarning)
         if not children:
             return
+
+        if isinstance(context, ManualContext):
+            self.manual_context_dictlist[context.name] = context
 
         if not ccr:
             rule = SimpleRule(
@@ -163,12 +164,16 @@ class Master(Grammar):
             [c.matches(executable, title, handle) for c in self.contexts]
         )
 
+        # print(active_contexts)
+
         if active_contexts not in self.grammar_map:
             self.add_repeater(active_contexts)
 
         for contexts, subgrammar in self.grammar_map.items():
             if active_contexts == contexts:
                 subgrammar.enable()
+                # print("%s active" % subgrammar.name)
+                # print(subgrammar.rules[0].element._child.children)
             else:
                 subgrammar.disable()
 

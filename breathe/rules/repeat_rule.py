@@ -7,4 +7,4 @@ class RepeatRule(SimpleRule):
 
         alts = Alternative(children)
         element = Repetition(alts, 1, 16)
-        SimpleRule.__init__(self, name, element, exported=True)
+        SimpleRule.__init__(self, name, element)

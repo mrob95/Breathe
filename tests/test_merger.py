@@ -9,7 +9,7 @@ from dragonfly import (
     Repeat,
 )
 import pytest
-from breathe import Breathe
+from breathe import Breathe, ManualContext
 from breathe.errors import CommandSkippedWarning
 import warnings
 
@@ -112,3 +112,30 @@ def test_recognition():
     with pytest.raises(MimicFailure):
         engine.mimic(["test", "three", "test", "four"])
     # engine.mimic(["test", "three", "test", "four"], executable="notepad")
+
+def test_manual_context():
+    Breathe.add_commands(
+        ManualContext("test"),
+        {"pizza": TText("margarita")}
+    )
+    with pytest.raises(MimicFailure):
+        engine.mimic(["pizza", "pizza"])
+    engine.mimic(["enable", "test"])
+    engine.mimic(["pizza", "banana"])
+    engine.mimic(["disable", "test"])
+    with pytest.raises(MimicFailure):
+        engine.mimic(["pizza"])
+
+def test_manual_context_noccr():
+    Breathe.add_commands(
+        ManualContext("test noccr"),
+        {"spaghetti": TText("bolognese")},
+        ccr=False
+    )
+    with pytest.raises(MimicFailure):
+        engine.mimic(["spaghetti"])
+    engine.mimic(["enable", "test noccr"])
+    engine.mimic(["spaghetti"])
+    engine.mimic(["disable", "test noccr"])
+    with pytest.raises(MimicFailure):
+        engine.mimic(["spaghetti"])
