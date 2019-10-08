@@ -57,7 +57,13 @@ class Master(Grammar):
         return str(self.count)
 
     def construct_extras(self, extras=None, defaults=None):
-        # Global extras may be overridden
+        """
+            Takes a list of extras provided by the user, and merges it with all global
+            extras to produce the {name: extra} dictionary that dragonfly expects.
+
+            In naming conflicts global extras will always be overridden, otherwise
+            the later extra will win.
+        """
         full_extras = self.global_extras.copy()
         if extras:
             assert isinstance(extras, (list, tuple))
@@ -72,6 +78,15 @@ class Master(Grammar):
         return full_extras
 
     def construct_commands(self, mapping, extras=None):
+        """
+            Constructs a list of BoundCompound objects from a mapping and an
+            extras dict.
+
+            Also automatically converts all callables to dragonfly Function objects,
+            allowing e.g.
+
+                mapping = {"foo [<n>]": lambda n: foo(n),}
+        """
         children = []
         assert isinstance(mapping, dict)
         for spec, value in mapping.items():
@@ -88,10 +103,20 @@ class Master(Grammar):
         return children
 
     def check_for_manuals(self, context):
+        """
+            Slightly horrible recursive function which handles the adding of command contexts.
+
+            If we haven't seen it before, we need to add the name of the context to our DictList
+            so it can be accessed by the "enable" command.
+
+            If we have seen it before, we need to ensure that there is only the one command
+            context object being referenced from multiple rules, rather than one for each.
+
+            This has to be done not only for CommandContext objects but also for ones
+            embedded in the children of an e.g. LogicOrContext.
+        """
         if isinstance(context, CommandContext):
             if context.name in self.command_context_dictlist:
-                # Everything we want to enable with this command
-                # should be referencing the same object
                 context = self.command_context_dictlist[context.name]
             else:
                 self.command_context_dictlist[context.name] = context
@@ -111,11 +136,11 @@ class Master(Grammar):
         """Add a set of commands which can be recognised continuously.
 
         Keyword Arguments:
-            context {Context} -- Context in which these commands will be active, if None, commands will be global (default: {None})
-            mapping {dict} -- Dictionary of rule specs to dragonfly Actions (default: {None})
-            extras {list} -- Extras which will be available for these commands (default: {None})
-            defaults {dict} -- Defaults for the extras, if necessary (default: {None})
-            ccr {bool} -- Whether these commands should be recognised continuously (default: {True})
+            context (Context) -- Context in which these commands will be active, if None, commands will be global (default: None)
+            mapping (dict) -- Dictionary of rule specs to dragonfly Actions (default: None)
+            extras (list) -- Extras which will be available for these commands (default: None)
+            defaults (dict) -- Defaults for the extras, if necessary (default: None)
+            ccr (bool) -- Whether these commands should be recognised continuously (default: True)
         """
 
         if not mapping:
@@ -214,8 +239,6 @@ class Master(Grammar):
         for contexts, subgrammar in self.grammar_map.items():
             if active_contexts == contexts:
                 subgrammar.enable()
-                # print("%s active" % subgrammar.name)
-                # print(subgrammar.rules[0].element._child.children)
             else:
                 subgrammar.disable()
 

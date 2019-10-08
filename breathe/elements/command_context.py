@@ -1,7 +1,6 @@
 from dragonfly import Context
 
 class CommandContext(Context):
-
     def __init__(self, name):
         Context.__init__(self)
         self._enabled = False
