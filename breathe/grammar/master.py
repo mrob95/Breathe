@@ -105,14 +105,9 @@ class Master(Grammar):
 
         if not ccr:
             rule = SimpleRule(
-<<<<<<< HEAD
                 element=Alternative(children),
                 context=context
                 )
-=======
-                element=Alternative(children), context=context, exported=True
-            )
->>>>>>> 7472cb0cf5d64cc162cb46a04b79fc6286483e68
             grammar = Grammar("NonCCR" + self.counter())
             grammar.add_rule(rule)
             grammar.load()
