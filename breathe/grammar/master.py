@@ -53,6 +53,40 @@ class Master(Grammar):
         self.count += 1
         return str(self.count)
 
+    def construct_extras(self, extras=None, defaults=None):
+        # Global extras may be overridden
+        full_extras = self.global_extras.copy()
+        if extras:
+            assert isinstance(extras, (list, tuple))
+            if defaults is None:
+                for e in extras:
+                    assert isinstance(e, ElementBase)
+                    full_extras.update({e.name: e})
+            else:
+                assert isinstance(defaults, dict)
+                for e in extras:
+                    assert isinstance(e, ElementBase)
+                    if not e.has_default() and e.name in defaults:
+                        e._default = defaults[e.name]
+                    full_extras.update({e.name: e})
+        return full_extras
+
+    def construct_commands(self, mapping, extras=None):
+        children = []
+        assert isinstance(mapping, dict)
+        for spec, value in mapping.items():
+            assert isinstance(spec, string_types)
+            if callable(value):
+                value = Function(value)
+            try:
+                c = BoundCompound(spec, extras=extras, value=value)
+                children.append(c)
+            except Exception as e:
+                # No need to raise, we can just skip this command
+                # Usually due to missing extras
+                warnings.warn(str(e), CommandSkippedWarning)
+        return children
+
     def add_commands(
         self, context=None, mapping=None, extras=None, defaults=None, ccr=True
     ):
@@ -69,35 +103,9 @@ class Master(Grammar):
         if not mapping:
             return
 
-        # Global extras may be overridden
-        full_extras = self.global_extras.copy()
-        if extras:
-            assert isinstance(extras, (list, tuple))
-            if defaults is None:
-                for e in extras:
-                    assert isinstance(e, ElementBase)
-                    full_extras.update({e.name: e})
-            else:
-                assert isinstance(defaults, dict)
-                for e in extras:
-                    assert isinstance(e, ElementBase)
-                    if not e.has_default() and e.name in defaults:
-                        e._default = defaults[e.name]
-                    full_extras.update({e.name: e})
+        full_extras = self.construct_extras(extras, defaults)
+        children = self.construct_commands(mapping, full_extras)
 
-        assert isinstance(mapping, dict)
-        children = []
-        for spec, value in mapping.items():
-            assert isinstance(spec, string_types)
-            if callable(value):
-                value = Function(value)
-            try:
-                c = BoundCompound(spec, extras=full_extras, value=value)
-                children.append(c)
-            except Exception as e:
-                # No need to raise, we can just skip this command
-                # Usually due to missing extras
-                warnings.warn(str(e), CommandSkippedWarning)
         if not children:
             return
 
@@ -149,8 +157,8 @@ class Master(Grammar):
         subgrammar = SubGrammar("SG%s" % self.counter())
         subgrammar.add_rule(rule)
 
-        self.grammar_map[matches] = subgrammar
         subgrammar.load()
+        self.grammar_map[matches] = subgrammar
 
     def process_begin(self, executable, title, handle):
         """
