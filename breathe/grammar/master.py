@@ -62,16 +62,13 @@ class Master(Grammar):
         if extras:
             assert isinstance(extras, (list, tuple))
             if defaults is None:
-                for e in extras:
-                    assert isinstance(e, ElementBase)
-                    full_extras.update({e.name: e})
-            else:
-                assert isinstance(defaults, dict)
-                for e in extras:
-                    assert isinstance(e, ElementBase)
-                    if not e.has_default() and e.name in defaults:
-                        e._default = defaults[e.name]
-                    full_extras.update({e.name: e})
+                defaults = {}
+            assert isinstance(defaults, dict)
+            for e in extras:
+                assert isinstance(e, ElementBase)
+                if not e.has_default() and e.name in defaults:
+                    e._default = defaults[e.name]
+                full_extras[e.name] = e
         return full_extras
 
     def construct_commands(self, mapping, extras=None):
