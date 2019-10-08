@@ -121,19 +121,24 @@ class Master(Grammar):
             self.contexts.append(context)
 
     def add_global_extras(self, *extras):
+        """
+            Global extras will be available to all commands,
+            but must be added before the commands which use them.
+
+            Defaults should be assigned on the extras themselves.
+        """
         if len(extras) == 1 and isinstance(extras[0], list):
             extras = extras[0]
         self.global_extras.update({e.name: e for e in extras})
 
     def add_repeater(self, matches):
         """
-            Takes a tuple of bools, corresponding to which context rules were matched,
+            Takes a tuple of bools, corresponding to which contexts were matched,
             and loads a SubGrammar containing a RepeatRule with all relevant commands in.
         """
         matched_commands = []
         for command_list in [l for (l, b) in zip(self.context_commands, matches) if b]:
             matched_commands.extend(command_list)
-        # Putting core commands at the end means they can be overridden?
         matched_commands.extend(self.core_commands)
 
         if not matched_commands:
