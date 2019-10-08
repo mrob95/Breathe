@@ -1,5 +1,5 @@
 from .grammar.master import Master
-from .elements import ManualContext
+from .elements import CommandContext
 import sys
 
 if not hasattr(sys, "_called_from_test"):

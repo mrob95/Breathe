@@ -1,6 +1,6 @@
 from dragonfly import Context
 
-class ManualContext(Context):
+class CommandContext(Context):
 
     def __init__(self, name):
         Context.__init__(self)

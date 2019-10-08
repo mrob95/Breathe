@@ -1,6 +1,5 @@
 from dragonfly import (
     get_engine,
-    Text as TextBase,
     Dictation,
     IntegerRef,
     MimicFailure,
@@ -8,24 +7,21 @@ from dragonfly import (
     Choice,
     Repeat,
 )
+from .testutils import TText
+
 import pytest
-from breathe import Breathe, ManualContext
+from breathe import Breathe, CommandContext
 from breathe.errors import CommandSkippedWarning
 import warnings
 
 engine = get_engine("text")
 
 
-class TText(TextBase):
-    def _execute(self, data):
-        pass
-
-
 def test_global_extras():
     Breathe.add_global_extras(Dictation("text"))
     assert len(Breathe.global_extras) == 1
     assert "text" in Breathe.global_extras
-
+    Breathe.add_global_extras([Choice("abc", {"def": "ghi"})])
 
 def test_core_commands():
     Breathe.add_commands(
@@ -39,7 +35,7 @@ def test_core_commands():
         [IntegerRef("n", 1, 10, 1)],
     )
     assert len(Breathe.core_commands) == 4
-    assert len(Breathe.core_commands[0]._extras) == 2
+    assert len(Breathe.core_commands[0]._extras) == 3
 
 
 def test_context_commands():
@@ -52,7 +48,7 @@ def test_context_commands():
     assert len(Breathe.context_commands) == 1
     assert len(Breathe.contexts) == 1
     assert len(Breathe.context_commands[0]) == 1
-    assert len(Breathe.context_commands[0][0]._extras) == 2
+    assert len(Breathe.context_commands[0][0]._extras) == 3
     assert Breathe.context_commands[0][0]._extras["num"].has_default()
 
 
@@ -104,36 +100,13 @@ def test_merging2():
 
 def test_recognition():
     engine.mimic(["test", "three", "test", "two", "banana"])
-    # engine.mimic(["testing", "static"], executable="firefox")
+    engine.mimic(["testing", "static"], executable="firefox")
     with pytest.raises(MimicFailure):
         engine.mimic(["dictation", "TESTING"])
-    # engine.mimic(["dictation", "TESTING"], executable="firefox")
+    engine.mimic(["dictation", "TESTING"], executable="firefox")
     with pytest.raises(MimicFailure):
         engine.mimic(["test", "three", "test", "four"])
-    # engine.mimic(["test", "three", "test", "four"], executable="notepad")
+    engine.mimic(["test", "three", "test", "four"], executable="notepad")
 
-def test_manual_context():
-    Breathe.add_commands(
-        ManualContext("test"),
-        {"pizza": TText("margarita")}
-    )
-    with pytest.raises(MimicFailure):
-        engine.mimic(["pizza", "pizza"])
-    engine.mimic(["enable", "test"])
-    engine.mimic(["pizza", "banana"])
-
-def test_manual_context_noccr():
-    Breathe.add_commands(
-        ManualContext("test") | AppContext("italy"),
-        {"spaghetti": TText("bolognese")},
-        ccr=False
-    )
-    # Loaded rule should be referencing the original
-    # "test" context loaded above, which should already be
-    # active
-    engine.mimic(["spaghetti"])
-    engine.mimic(["disable", "test"])
-    with pytest.raises(MimicFailure):
-        engine.mimic(["spaghetti"])
-        engine.mimic(["pizza", "banana"])
-    # engine.mimic(["spaghetti"], executable="italy")
+def test_clear():
+    Breathe.clear()

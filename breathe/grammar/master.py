@@ -11,7 +11,7 @@ from dragonfly import (
 )
 from ..rules import RepeatRule, SimpleRule, ContextSwitcher
 from .subgrammar import SubGrammar
-from ..elements import BoundCompound, ManualContext
+from ..elements import BoundCompound, CommandContext
 from ..errors import CommandSkippedWarning
 from six import string_types
 import warnings
@@ -35,18 +35,18 @@ class Master(Grammar):
         # Dict[Tuple[bool], SubGrammar]
         # Key of dictionary is the contexts the rule matched
         self.grammar_map = {}
+        # List[Grammar]
+        self.non_ccr_grammars = []
 
         # Dict[str, ElementBase]
         self.global_extras = {}
 
-        self.manual_context_dictlist = DictList("manual_contexts")
-        self.add_rule(
-            ContextSwitcher(self.manual_context_dictlist)
-        )
+        self.command_context_dictlist = DictList("manual_contexts")
+        self.add_rule(ContextSwitcher(self.command_context_dictlist))
 
         self.load()
 
-    #------------------------------------------------
+    # ------------------------------------------------
     # Loading helpers
 
     def counter(self):
@@ -88,13 +88,13 @@ class Master(Grammar):
         return children
 
     def check_for_manuals(self, context):
-        if isinstance(context, ManualContext):
-            if context.name in self.manual_context_dictlist:
+        if isinstance(context, CommandContext):
+            if context.name in self.command_context_dictlist:
                 # Everything we want to enable with this command
                 # should be referencing the same object
-                context = self.manual_context_dictlist[context.name]
+                context = self.command_context_dictlist[context.name]
             else:
-                self.manual_context_dictlist[context.name] = context
+                self.command_context_dictlist[context.name] = context
         elif hasattr(context, "_children"):
             new_children = []
             for c in context._children:
@@ -102,7 +102,7 @@ class Master(Grammar):
             context._children = tuple(new_children)
         return context
 
-    #------------------------------------------------
+    # ------------------------------------------------
     # API
 
     def add_commands(
@@ -130,13 +130,11 @@ class Master(Grammar):
         context = self.check_for_manuals(context)
 
         if not ccr:
-            rule = SimpleRule(
-                element=Alternative(children),
-                context=context
-                )
+            rule = SimpleRule(element=Alternative(children), context=context)
             grammar = Grammar("NonCCR" + self.counter())
             grammar.add_rule(rule)
             grammar.load()
+            self.non_ccr_grammars.append(grammar)
             return
 
         if context is None:
@@ -159,8 +157,24 @@ class Master(Grammar):
             assert isinstance(e, ElementBase)
             self.global_extras.update({e.name: e})
 
-    #------------------------------------------------
+    # ------------------------------------------------
     # Runtime grammar management
+
+    def clear(self):
+        """
+            Removes all added rules, unloads all grammars, etc.
+        """
+        self.core_commands = []
+        self.context_commands = []
+        self.contexts = []
+        for subgrammar in self.grammar_map.values():
+            subgrammar.unload()
+        for grammar in self.non_ccr_grammars:
+            grammar.unload()
+        self.grammar_map = {}
+        self.non_ccr_grammars = []
+        self.global_extras = {}
+        self.command_context_dictlist.clear()
 
     def add_repeater(self, matches):
         """
