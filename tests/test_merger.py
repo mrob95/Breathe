@@ -23,6 +23,7 @@ def test_global_extras():
     assert "text" in Breathe.global_extras
     Breathe.add_global_extras([Choice("abc", {"def": "ghi"})])
 
+
 def test_core_commands():
     Breathe.add_commands(
         None,
@@ -34,8 +35,7 @@ def test_core_commands():
         },
         [IntegerRef("n", 1, 10, 1)],
     )
-    assert len(Breathe.core_commands) == 4
-    assert len(Breathe.core_commands[0]._extras) == 3
+    engine.mimic(["test", "three", "test", "two", "banana", "five"])
 
 
 def test_context_commands():
@@ -45,11 +45,22 @@ def test_context_commands():
         [Choice("num", {"four": "4", "five": "5", "six": "6"})],
         {"num": ""},
     )
-    assert len(Breathe.context_commands) == 1
-    assert len(Breathe.contexts) == 1
-    assert len(Breathe.context_commands[0]) == 1
-    assert len(Breathe.context_commands[0][0]._extras) == 3
-    assert Breathe.context_commands[0][0]._extras["num"].has_default()
+    with pytest.raises(MimicFailure):
+        engine.mimic(["test", "three", "test", "four"])
+    engine.mimic(["test", "three", "test", "four"], executable="notepad")
+
+
+def test_noccr_commands():
+    Breathe.add_commands(
+        AppContext("firefox"),
+        {"dictation <text>": TText("%(text)s"), "testing static": TText("Static")},
+        ccr=False,
+    )
+    engine.mimic(["testing", "static"], executable="firefox")
+    with pytest.raises(MimicFailure):
+        engine.mimic(["dictation", "TESTING"])
+        engine.mimic(["testing", "static", "testing", "static"], executable="firefox")
+    engine.mimic(["dictation", "TESTING"], executable="firefox")
 
 
 def test_nomapping_commands():
@@ -66,47 +77,6 @@ def test_no_extra():
         assert len(w) == 1
         assert issubclass(w[0].category, CommandSkippedWarning)
 
-
-def test_noccr_commands():
-    Breathe.add_commands(
-        AppContext("firefox"),
-        {"dictation <text>": TText("%(text)s"), "testing static": TText("Static")},
-        ccr=False,
-    )
-    assert len(engine.grammars) == 2
-
-
-def test_merging1():
-    Breathe.process_begin("chrome", "", "")
-    assert len(Breathe.grammar_map) == 1
-    assert (False,) in Breathe.grammar_map
-    active_subgrammar = Breathe.grammar_map[(False,)]
-    assert len(active_subgrammar.rules) == 2
-    active_rule = active_subgrammar.rules[0]
-    assert len(active_rule.element._child._children) == 4
-
-
-def test_merging2():
-    Breathe.process_begin("notepad", "", "")
-    assert len(Breathe.grammar_map) == 2
-    assert (True,) in Breathe.grammar_map
-    active_subgrammar = Breathe.grammar_map[(True,)]
-    assert active_subgrammar.enabled
-    assert len(active_subgrammar.rules) == 2
-    active_rule = active_subgrammar.rules[0]
-    assert active_rule.active
-    assert len(active_rule.element._child._children) == 5
-
-
-def test_recognition():
-    engine.mimic(["test", "three", "test", "two", "banana"])
-    engine.mimic(["testing", "static"], executable="firefox")
-    with pytest.raises(MimicFailure):
-        engine.mimic(["dictation", "TESTING"])
-    engine.mimic(["dictation", "TESTING"], executable="firefox")
-    with pytest.raises(MimicFailure):
-        engine.mimic(["test", "three", "test", "four"])
-    engine.mimic(["test", "three", "test", "four"], executable="notepad")
 
 def test_clear():
     Breathe.clear()
