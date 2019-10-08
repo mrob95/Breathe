@@ -83,8 +83,7 @@ class Master(Grammar):
         if not ccr:
             rule = SimpleRule(
                 element=Alternative(children),
-                context=context,
-                exported=True
+                context=context
                 )
             grammar = Grammar("NonCCR" + self.counter())
             grammar.add_rule(rule)
