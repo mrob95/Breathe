@@ -128,6 +128,11 @@ class Master(Grammar):
         return context
 
     def _pad_matches(self):
+        """
+            If a new context is added after we have already started creating subgrammars,
+            then to avoid pointlessly recreating them we use the already existing grammars
+            when the new context is inactive.
+        """
         for k, v in self.grammar_map.copy().items():
             padded = list(k)
             padded.append(False)
@@ -176,8 +181,7 @@ class Master(Grammar):
             assert isinstance(context, Context)
             self.context_commands.append(children)
             self.contexts.append(context)
-            if len(self.grammar_map) > 0:
-                self._pad_matches()
+            self._pad_matches()
 
     def add_global_extras(self, *extras):
         """
@@ -224,13 +228,14 @@ class Master(Grammar):
         if not matched_commands:
             return
 
-        rule = RepeatRule("Repeater%s" % self.counter(), matched_commands)
+        rule = RepeatRule(
+            "Repeater%s" % self.counter(), matched_commands, self.MAX_REPETITIONS
+        )
         subgrammar = SubGrammar("SG%s" % self.counter())
         subgrammar.add_rule(rule)
 
         subgrammar.load()
         self.grammar_map[matches] = subgrammar
-
 
     def process_begin(self, executable, title, handle):
         """

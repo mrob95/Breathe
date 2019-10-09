@@ -1,12 +1,11 @@
 from dragonfly import Grammar
 
-
 class SubGrammar(Grammar):
 
     def process_begin(self, executable, title, handle):
         """
             Enabling and disabling this grammar is handled
-            by the merger
+            by the master
         """
         pass
 
