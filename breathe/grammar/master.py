@@ -56,7 +56,7 @@ class Master(Grammar):
         self.count += 1
         return str(self.count)
 
-    def construct_extras(self, extras=None, defaults=None):
+    def _construct_extras(self, extras=None, defaults=None):
         """
             Takes a list of extras provided by the user, and merges it with all global
             extras to produce the {name: extra} dictionary that dragonfly expects.
@@ -77,7 +77,7 @@ class Master(Grammar):
                 full_extras[e.name] = e
         return full_extras
 
-    def construct_commands(self, mapping, extras=None):
+    def _construct_commands(self, mapping, extras=None):
         """
             Constructs a list of BoundCompound objects from a mapping and an
             extras dict.
@@ -90,10 +90,10 @@ class Master(Grammar):
         children = []
         assert isinstance(mapping, dict)
         for spec, value in mapping.items():
-            assert isinstance(spec, string_types)
             if callable(value):
                 value = Function(value)
             try:
+                assert isinstance(spec, string_types)
                 c = BoundCompound(spec, extras=extras, value=value)
                 children.append(c)
             except Exception as e:
@@ -102,7 +102,7 @@ class Master(Grammar):
                 warnings.warn(str(e), CommandSkippedWarning)
         return children
 
-    def check_for_manuals(self, context):
+    def _check_for_manuals(self, context):
         """
             Slightly horrible recursive function which handles the adding of command contexts.
 
@@ -123,9 +123,17 @@ class Master(Grammar):
         elif hasattr(context, "_children"):
             new_children = []
             for c in context._children:
-                new_children.append(self.check_for_manuals(c))
+                new_children.append(self._check_for_manuals(c))
             context._children = tuple(new_children)
         return context
+
+    def _pad_matches(self):
+        for k, v in self.grammar_map.copy().items():
+            padded = list(k)
+            padded.append(False)
+            matches = tuple(padded)
+            if matches not in self.grammar_map:
+                self.grammar_map[matches] = v
 
     # ------------------------------------------------
     # API
@@ -146,13 +154,13 @@ class Master(Grammar):
         if not mapping:
             return
 
-        full_extras = self.construct_extras(extras, defaults)
-        children = self.construct_commands(mapping, full_extras)
+        full_extras = self._construct_extras(extras, defaults)
+        children = self._construct_commands(mapping, full_extras)
 
         if not children:
             return
 
-        context = self.check_for_manuals(context)
+        context = self._check_for_manuals(context)
 
         if not ccr:
             rule = SimpleRule(element=Alternative(children), context=context)
@@ -168,6 +176,8 @@ class Master(Grammar):
             assert isinstance(context, Context)
             self.context_commands.append(children)
             self.contexts.append(context)
+            if len(self.grammar_map) > 0:
+                self._pad_matches()
 
     def add_global_extras(self, *extras):
         """
@@ -181,9 +191,6 @@ class Master(Grammar):
         for e in extras:
             assert isinstance(e, ElementBase)
             self.global_extras.update({e.name: e})
-
-    # ------------------------------------------------
-    # Runtime grammar management
 
     def clear(self):
         """
@@ -201,7 +208,10 @@ class Master(Grammar):
         self.global_extras = {}
         self.command_context_dictlist.clear()
 
-    def add_repeater(self, matches):
+    # ------------------------------------------------
+    # Runtime grammar management
+
+    def _add_repeater(self, matches):
         """
             Takes a tuple of bools, corresponding to which contexts were matched,
             and loads a SubGrammar containing a RepeatRule with all relevant commands in.
@@ -221,6 +231,7 @@ class Master(Grammar):
         subgrammar.load()
         self.grammar_map[matches] = subgrammar
 
+
     def process_begin(self, executable, title, handle):
         """
             Check which of our contexts the current window matches and look this up in our grammar map.
@@ -234,7 +245,7 @@ class Master(Grammar):
         )
 
         if active_contexts not in self.grammar_map:
-            self.add_repeater(active_contexts)
+            self._add_repeater(active_contexts)
 
         for contexts, subgrammar in self.grammar_map.items():
             if active_contexts == contexts:

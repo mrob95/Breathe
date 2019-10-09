@@ -63,18 +63,27 @@ def test_noccr_commands():
     engine.mimic(["dictation", "TESTING"], executable="firefox")
 
 
+def test_grammar_numbers():
+    engine.mimic(["test", "three"])
+    # Ensure that we are not adding more grammars than necessary
+    assert len(engine.grammars) == 4
+
+
 def test_nomapping_commands():
     Breathe.add_commands(AppContext("code.exe"), {})
 
 
-def test_no_extra():
+def test_invalid():
     with warnings.catch_warnings(record=True) as w:
         warnings.simplefilter("always")
         Breathe.add_commands(
             AppContext("code.exe"),
-            {"test that <nonexistent_extra>": TText("%(nonexistent_extra)s")},
+            {
+                "test that <nonexistent_extra>": TText("%(nonexistent_extra)s"),
+                1: TText("test"),
+            },
         )
-        assert len(w) == 1
+        assert len(w) == 2
         assert issubclass(w[0].category, CommandSkippedWarning)
 
 
