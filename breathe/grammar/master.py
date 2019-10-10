@@ -121,9 +121,7 @@ class Master(Grammar):
             else:
                 self.command_context_dictlist[context.name] = context
         elif hasattr(context, "_children"):
-            new_children = []
-            for c in context._children:
-                new_children.append(self._check_for_manuals(c))
+            new_children = [self._check_for_manuals(c) for c in context._children]
             context._children = tuple(new_children)
         return context
 
