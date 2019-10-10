@@ -16,7 +16,17 @@ from ..errors import CommandSkippedWarning
 from six import string_types
 import warnings
 
+"""
+    Example:
 
+    We have added a set of core commands (context=None) and two sets of context commands, all ccr. This produces a list of core command, a list of lists of context commands, and a list of contexts.
+
+        self.core_commands = [BoundCompound(...), ...]
+        self.context_commands = [[BoundCompound(...), ...], [...]]
+        self.contexts = [AppContext("notepad"), AppContext("chrome")]
+
+    We now start an utterance in notepad. process_begin is called, active contexts are (True, False). We look this up in the grammar map and since we haven't seen this combination of contexts before, we need to add a new grammar for it. We combine the core commands with the notepad command list from context_commands, create a repeat rule and load it in a new sub grammar. We add this subgrammar to the grammar map so that we never need to create it again. We continue in this way, adding subgrammars on-the-fly for whatever combination of contexts comes up.
+"""
 class Master(Grammar):
 
     MAX_REPETITIONS = 16
