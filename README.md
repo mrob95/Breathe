@@ -1,5 +1,5 @@
 # Breathe [![Build Status](https://travis-ci.org/mrob95/Breathe.svg?branch=master)](https://travis-ci.org/mrob95/Breathe)
-A convenient API for creating dragonfly grammars with automatic CCR (continuous command recognition).
+A convenient API for creating [dragonfly](https://github.com/dictation-toolbox/dragonfly) grammars with automatic CCR (continuous command recognition).
 
 * Very quick start-up
 * Command activity can be controlled either using dragonfly contexts or using "enable" and "disable" commands.

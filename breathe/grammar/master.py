@@ -19,14 +19,24 @@ import warnings
 """
     Example:
 
-    We have added a set of core commands (context=None) and two sets of context commands, all ccr. This produces a list of core command, a list of lists of context commands, and a list of contexts.
+    We have added a set of core commands (context=None) and two sets of context commands,
+    all ccr. This produces a list of core command, a list of lists of context commands,
+    and a list of contexts.
 
         self.core_commands = [BoundCompound(...), ...]
         self.context_commands = [[BoundCompound(...), ...], [...]]
         self.contexts = [AppContext("notepad"), AppContext("chrome")]
 
-    We now start an utterance in notepad. process_begin is called, active contexts are (True, False). We look this up in the grammar map and since we haven't seen this combination of contexts before, we need to add a new grammar for it. We combine the core commands with the notepad command list from context_commands, create a repeat rule and load it in a new sub grammar. We add this subgrammar to the grammar map so that we never need to create it again. We continue in this way, adding subgrammars on-the-fly for whatever combination of contexts comes up.
+    We now start an utterance in notepad. process_begin is called, active contexts are
+    (True, False). We look this up in the grammar map and since we haven't seen this
+    combination of contexts before, we need to add a new grammar for it. We combine the
+    core commands with the notepad command list from context_commands, create a repeat
+    rule and load it in a new sub grammar. We add this subgrammar to the grammar map
+    so that we never need to create it again. We continue in this way, adding subgrammars
+    on-the-fly for whatever combination of contexts comes up.
 """
+
+
 class Master(Grammar):
 
     MAX_REPETITIONS = 16
@@ -55,6 +65,78 @@ class Master(Grammar):
         self.add_rule(ContextSwitcher(self.command_context_dictlist))
 
         self.load()
+
+    # ------------------------------------------------
+    # API
+
+    def add_commands(
+        self, context=None, mapping=None, extras=None, defaults=None, ccr=True
+    ):
+        """Add a set of commands which can be recognised continuously.
+
+        Keyword Arguments:
+            context (Context) -- Context in which these commands will be active, if None, commands will be global (default: None)
+            mapping (dict) -- Dictionary of rule specs to dragonfly Actions (default: None)
+            extras (list) -- Extras which will be available for these commands (default: None)
+            defaults (dict) -- Defaults for the extras, if necessary (default: None)
+            ccr (bool) -- Whether these commands should be recognised continuously (default: True)
+        """
+
+        if not mapping:
+            return
+
+        full_extras = self._construct_extras(extras, defaults)
+        children = self._construct_commands(mapping, full_extras)
+
+        if not children:
+            return
+
+        context = self._check_for_manuals(context)
+
+        if not ccr:
+            rule = SimpleRule(element=Alternative(children), context=context)
+            grammar = Grammar("NonCCR" + self.counter())
+            grammar.add_rule(rule)
+            grammar.load()
+            self.non_ccr_grammars.append(grammar)
+            return
+
+        if context is None:
+            self.core_commands.extend(children)
+        else:
+            assert isinstance(context, Context)
+            self.context_commands.append(children)
+            self.contexts.append(context)
+            self._pad_matches()
+
+    def add_global_extras(self, *extras):
+        """
+            Global extras will be available to all commands,
+            but must be added before the commands which use them.
+
+            Defaults should be assigned on the extras themselves.
+        """
+        if len(extras) == 1 and isinstance(extras[0], list):
+            extras = extras[0]
+        for e in extras:
+            assert isinstance(e, ElementBase)
+            self.global_extras.update({e.name: e})
+
+    def clear(self):
+        """
+            Removes all added rules, unloads all grammars, etc.
+        """
+        self.core_commands = []
+        self.context_commands = []
+        self.contexts = []
+        for subgrammar in self.grammar_map.values():
+            subgrammar.unload()
+        for grammar in self.non_ccr_grammars:
+            grammar.unload()
+        self.grammar_map = {}
+        self.non_ccr_grammars = []
+        self.global_extras = {}
+        self.command_context_dictlist.clear()
 
     # ------------------------------------------------
     # Loading helpers
@@ -149,78 +231,6 @@ class Master(Grammar):
             matches = tuple(padded)
             if matches not in self.grammar_map:
                 self.grammar_map[matches] = v
-
-    # ------------------------------------------------
-    # API
-
-    def add_commands(
-        self, context=None, mapping=None, extras=None, defaults=None, ccr=True
-    ):
-        """Add a set of commands which can be recognised continuously.
-
-        Keyword Arguments:
-            context (Context) -- Context in which these commands will be active, if None, commands will be global (default: None)
-            mapping (dict) -- Dictionary of rule specs to dragonfly Actions (default: None)
-            extras (list) -- Extras which will be available for these commands (default: None)
-            defaults (dict) -- Defaults for the extras, if necessary (default: None)
-            ccr (bool) -- Whether these commands should be recognised continuously (default: True)
-        """
-
-        if not mapping:
-            return
-
-        full_extras = self._construct_extras(extras, defaults)
-        children = self._construct_commands(mapping, full_extras)
-
-        if not children:
-            return
-
-        context = self._check_for_manuals(context)
-
-        if not ccr:
-            rule = SimpleRule(element=Alternative(children), context=context)
-            grammar = Grammar("NonCCR" + self.counter())
-            grammar.add_rule(rule)
-            grammar.load()
-            self.non_ccr_grammars.append(grammar)
-            return
-
-        if context is None:
-            self.core_commands.extend(children)
-        else:
-            assert isinstance(context, Context)
-            self.context_commands.append(children)
-            self.contexts.append(context)
-            self._pad_matches()
-
-    def add_global_extras(self, *extras):
-        """
-            Global extras will be available to all commands,
-            but must be added before the commands which use them.
-
-            Defaults should be assigned on the extras themselves.
-        """
-        if len(extras) == 1 and isinstance(extras[0], list):
-            extras = extras[0]
-        for e in extras:
-            assert isinstance(e, ElementBase)
-            self.global_extras.update({e.name: e})
-
-    def clear(self):
-        """
-            Removes all added rules, unloads all grammars, etc.
-        """
-        self.core_commands = []
-        self.context_commands = []
-        self.contexts = []
-        for subgrammar in self.grammar_map.values():
-            subgrammar.unload()
-        for grammar in self.non_ccr_grammars:
-            grammar.unload()
-        self.grammar_map = {}
-        self.non_ccr_grammars = []
-        self.global_extras = {}
-        self.command_context_dictlist.clear()
 
     # ------------------------------------------------
     # Runtime grammar management
