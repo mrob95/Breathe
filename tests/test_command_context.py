@@ -34,5 +34,18 @@ def test_manual_context_noccr():
         engine.mimic(["pizza", "curry"])
     engine.mimic(["spaghetti"], executable="italy")
 
+def test_negated_context():
+    Breathe.add_commands(
+        ~(CommandContext("america") | AppContext("england")),
+        {"steak": TText("chips"),
+        }
+    )
+    engine.mimic(["steak"])
+    with pytest.raises(MimicFailure):
+        engine.mimic(["steak"], executable="england")
+    engine.mimic(["enable", "america"])
+    with pytest.raises(MimicFailure):
+        engine.mimic(["steak"])
+
 def test_clear():
     Breathe.clear()

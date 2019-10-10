@@ -123,6 +123,8 @@ class Master(Grammar):
         elif hasattr(context, "_children"):
             new_children = [self._check_for_manuals(c) for c in context._children]
             context._children = tuple(new_children)
+        elif hasattr(context, "_child"):
+            context._child = self._check_for_manuals(context._child)
         return context
 
     def _pad_matches(self):
