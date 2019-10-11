@@ -6,7 +6,7 @@ def read(*names):
 
 setup(
     name="dfly-breathe",
-    version="0.1.0",
+    version=read("version.txt"),
     description="Dragonfly command API",
     author="Mike Roberts",
     author_email="mike.roberts.2k10@googlemail.com",
