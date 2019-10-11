@@ -47,3 +47,8 @@ Breathe.add_commands(
     ]
 )
 ```
+
+For full details of the available contexts, actions and extras you can use, see the [dragonfly documentation](https://dragonfly.readthedocs.io/en/latest/).
+
+## Notes
+* If you are using the kaldi backend, you will need to set `lazy_compilation=False` in the `get_engine` function in your loader file.
