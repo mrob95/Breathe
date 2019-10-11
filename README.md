@@ -7,9 +7,7 @@ A convenient API for creating [dragonfly](https://github.com/dictation-toolbox/d
 
 ## Installation
 ```
-git clone https://github.com/mrob95/Breathe.git
-cd Breathe
-pip install .
+pip install dfly-breathe
 ```
 
 ## Example
