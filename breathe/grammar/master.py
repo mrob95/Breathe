@@ -87,16 +87,10 @@ class Master(Grammar):
             defaults (dict) -- Defaults for the extras, if necessary (default: None)
             ccr (bool) -- Whether these commands should be recognised continuously (default: True)
         """
-
-        if not mapping:
-            return
-
         full_extras = self._construct_extras(extras, defaults)
         children = self._construct_commands(mapping, full_extras)
-
         if not children:
             return
-
         if context is not None:
             context = self.everything_context & self._check_for_manuals(context)
 
@@ -106,9 +100,7 @@ class Master(Grammar):
             grammar.add_rule(rule)
             grammar.load()
             self.non_ccr_grammars.append(grammar)
-            return
-
-        if context is None:
+        elif context is None:
             self.core_commands.extend(children)
         else:
             assert isinstance(context, Context)
