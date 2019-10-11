@@ -61,7 +61,13 @@ class Master(Grammar):
         # Dict[str, ElementBase]
         self.global_extras = {}
 
-        self.command_context_dictlist = DictList("manual_contexts")
+        # Command contexts are switched by user commands like "enable breathe"
+        self.everything_context = CommandContext("breathe", enabled=True)
+        # The DictList makes it easy to add new mappings from command context names
+        # which will be recognised by the "enable/disable" command to the contexts themselves
+        self.command_context_dictlist = DictList(
+            "manual_contexts", {"breathe": self.everything_context}
+        )
         self.add_rule(ContextSwitcher(self.command_context_dictlist))
 
         self.load()
@@ -91,7 +97,8 @@ class Master(Grammar):
         if not children:
             return
 
-        context = self._check_for_manuals(context)
+        if context is not None:
+            context = self.everything_context & self._check_for_manuals(context)
 
         if not ccr:
             rule = SimpleRule(element=Alternative(children), context=context)

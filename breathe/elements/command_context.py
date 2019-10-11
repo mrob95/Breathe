@@ -2,9 +2,9 @@ from dragonfly import Context
 
 class CommandContext(Context):
 
-    def __init__(self, name):
+    def __init__(self, name, enabled=False):
         Context.__init__(self)
-        self._enabled = False
+        self._enabled = enabled
         self.name = name
         self._str = name
 
