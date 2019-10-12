@@ -1,4 +1,4 @@
-from setuptools import setup
+from setuptools import setup, find_packages
 import os
 
 def read(*names):
@@ -14,7 +14,7 @@ setup(
     url="https://github.com/mrob95/Breathe",
     long_description = read("README.md"),
     long_description_content_type='text/markdown',
-    packages=["breathe"],
+    packages=find_packages(exclude=("tests", "tests.*")),
     install_requires=["dragonfly2"],
     classifiers=[
                    "Environment :: Win32 (MS Windows)",
