@@ -4,10 +4,8 @@ python:
   - "3.7"
 
 install:
-  - pip install git+https://github.com/dictation-toolbox/dragonfly.git
   - pip install .
   - pip install pytest pytest-cov
 
 script:
-  # Run the default test suite.
   - pytest --cov-report term-missing --cov=breathe tests/
