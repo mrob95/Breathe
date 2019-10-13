@@ -1,0 +1,84 @@
+from dragonfly import ElementBase, Function
+from ..elements import BoundCompound, CommandContext
+from ..errors import CommandSkippedWarning
+from six import string_types
+import warnings
+
+
+def construct_extras(extras=None, defaults=None, global_extras=None):
+    """
+        Takes a list of extras provided by the user, and merges it with all global
+        extras to produce the {name: extra} dictionary that dragonfly expects.
+
+        In naming conflicts global extras will always be overridden, otherwise
+        the later extra will win.
+    """
+    if global_extras is None:
+        full_extras = {}
+    else:
+        full_extras = global_extras.copy()
+    if extras:
+        assert isinstance(extras, (list, tuple))
+        if defaults is None:
+            defaults = {}
+        assert isinstance(defaults, dict)
+        for e in extras:
+            assert isinstance(e, ElementBase)
+            if not e.has_default() and e.name in defaults:
+                e._default = defaults[e.name]
+            full_extras[e.name] = e
+    return full_extras
+
+
+def construct_commands(mapping, extras=None):
+    """
+        Constructs a list of BoundCompound objects from a mapping and an
+        extras dict.
+
+        Also automatically converts all callables to dragonfly Function objects,
+        allowing e.g.
+
+            mapping = {"foo [<n>]": lambda n: foo(n),}
+    """
+    children = []
+    assert isinstance(mapping, dict)
+    for spec, value in mapping.items():
+        if callable(value):
+            value = Function(value)
+        try:
+            assert isinstance(spec, string_types)
+            c = BoundCompound(spec, extras=extras, value=value)
+            children.append(c)
+        except Exception as e:
+            # No need to raise, we can just skip this command
+            # Usually due to missing extras
+            warnings.warn(str(e), CommandSkippedWarning)
+    return children
+
+
+def check_for_manuals(context, command_dictlist):
+    """
+        Slightly horrible recursive function which handles the adding of command contexts.
+
+        If we haven't seen it before, we need to add the name of the context to our DictList
+        so it can be accessed by the "enable" command.
+
+        If we have seen it before, we need to ensure that there is only the one command
+        context object being referenced from multiple rules, rather than one for each.
+
+        This has to be done not only for CommandContext objects but also for ones
+        embedded in the children of an e.g. LogicOrContext.
+    """
+    if isinstance(context, CommandContext):
+        if context.name in command_dictlist:
+            context = command_dictlist[context.name]
+        else:
+            command_dictlist[context.name] = context
+    elif hasattr(context, "_children"):
+        new_children = [
+            check_for_manuals(c, command_dictlist) for c in context._children
+        ]
+        context._children = tuple(new_children)
+    elif hasattr(context, "_child"):
+        context._child = check_for_manuals(context._child, command_dictlist)
+    return context

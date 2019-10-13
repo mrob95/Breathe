@@ -21,14 +21,14 @@ import importlib
     Example:
 
     We have added a set of core commands (context=None) and two sets of context commands,
-    all ccr. This produces a list of core command, a list of lists of context commands,
+    all ccr. This produces a list of core commands, a list of lists of context commands,
     and a list of contexts.
 
         self.core_commands = [BoundCompound(...), ...]
         self.context_commands = [[BoundCompound(...), ...], [...]]
         self.contexts = [AppContext("notepad"), AppContext("chrome")]
 
-    We now start an utterance in notepad. process_begin is called, active contexts are
+    We now start an utterance in notepad. process_begin is called, context matches are
     (True, False). We look this up in the grammar map and since we haven't seen this
     combination of contexts before, we need to add a new grammar for it. We combine the
     core commands with the notepad command list from context_commands, create a repeat
@@ -244,7 +244,6 @@ class Master(Grammar):
         for command_list in [l for (l, b) in zip(self.context_commands, matches) if b]:
             matched_commands.extend(command_list)
         matched_commands.extend(self.core_commands)
-
         if not matched_commands:
             return
 
@@ -253,7 +252,6 @@ class Master(Grammar):
         )
         subgrammar = SubGrammar("SG%s" % self.counter())
         subgrammar.add_rule(rule)
-
         subgrammar.load()
         self.grammar_map[matches] = subgrammar
 
