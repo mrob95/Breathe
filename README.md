@@ -11,6 +11,8 @@ pip install dfly-breathe
 ```
 
 ## Example
+### Adding commands
+
 ```python
 from dragonfly import *
 from breathe import Breathe, CommandContext
@@ -47,6 +49,52 @@ Breathe.add_commands(
 ```
 
 For full details of the available contexts, actions and extras you can use, see the [dragonfly documentation](https://dragonfly.readthedocs.io/en/latest/).
+
+### Loading command files
+Breathe provides the command "rebuild everything" for reloading all of your commands,
+allowing you to modify commands without restarting the engine. In order for this to work,
+your command files need to be loaded by giving your directory structure to
+`Breathe.load_modules()`.
+
+For example, given a directory set up like this:
+```
+|   _main.py
+|   __init__.py
++---my_commands
+|   |   __init__.py
+|   +---apps
+|   |       chrome.py
+|   |       notepad.py
+|   |       __init__.py
+|   +---core
+|   |       alphabet.py
+|   |       keys.py
+|   |       __init__.py
+|   +---language
+|   |       c.py
+|   |       python.py
+|   |       __init__.py
+```
+
+Inside `_main.py`, the file which will be loaded by the engine, we load all of our command
+files by passing a dictionary with keys representing folder name and values being either a
+single module to import, a list of modules to import, or another dictionary. Like so:
+```
+from breathe import Breathe
+
+Breathe.load_modules(
+    {
+        "my_commands": {
+            "apps": ["chrome", "notepad"],
+            "language": ["python", "c"],
+            "core": ["keys", "alphabet"],
+        }
+    }
+)
+```
+
+Given this setup, calling the "rebuild everything" command will reload all of your command
+files, making any changes available.
 
 ## Notes
 * If you are using the kaldi backend, you will need to set `lazy_compilation=False` in the `get_engine` function in your loader file.
