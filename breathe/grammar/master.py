@@ -19,6 +19,7 @@ from ..rules import SimpleRule, ContextSwitcher
 from ..elements import BoundCompound, CommandContext, TrueContext, CommandsRef
 
 import warnings
+import time
 
 """
     Example:
@@ -305,11 +306,16 @@ class Master(Grammar):
 
             Enable the subgrammar which matches the window, and disable all others.
         """
+        start = time.time()
+
         active_contexts = tuple(
             [c.matches(executable, title, handle) for c in self.contexts]
         )
 
+        new = False
+
         if active_contexts not in self.grammar_map:
+            new = True
             matched_top_level_contexts = [
                 c.matches(executable, title, handle) for c in self.top_level_contexts
             ]
@@ -322,3 +328,7 @@ class Master(Grammar):
                 subgrammar.disable()
 
             subgrammar._process_begin()
+
+        elapsed = time.time()-start
+        if new:
+            print("Compilation took %s" % elapsed)
