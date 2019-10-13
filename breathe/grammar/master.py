@@ -13,8 +13,8 @@ from ..rules import RepeatRule, SimpleRule, ContextSwitcher
 from .subgrammar import SubGrammar
 from ..elements import BoundCompound, CommandContext
 from ..errors import CommandSkippedWarning
-from six import string_types
-import warnings
+from six import string_types, PY2
+import warnings, importlib
 
 """
     Example:
@@ -69,6 +69,16 @@ class Master(Grammar):
             "manual_contexts", {"breathe": self.everything_context}
         )
         self.add_rule(ContextSwitcher(self.command_context_dictlist))
+        self.add_rule(SimpleRule(
+            "rebuilder",
+            BoundCompound(
+                "rebuild everything",
+                value = Function(lambda: self.reload_modules())
+                )
+            )
+        )
+
+        self.imported_modules = []
 
         self.load()
 
@@ -120,6 +130,65 @@ class Master(Grammar):
         for e in extras:
             assert isinstance(e, ElementBase)
             self.global_extras.update({e.name: e})
+
+    def load_modules(self, modules, namespace=""):
+        """
+            Loads a set of modules into breathe, and makes them available for reloading
+            using the "rebuild everything" command.
+
+            Modules should be passed as a dictionary, with keys representing folder names
+            and values being either a single module to import, a list of modules to import,
+            or another dictionary. These can be nested arbitrarily deep. e.g.
+
+                Breathe.load_modules(
+                    {
+                        "my_commands": {
+                            "apps": ["chrome", "notepad"],
+                            "language": ["python", "c"],
+                            "core": ["keys", "alphabet"],
+                        }
+                    }
+                )
+
+            Called from _main.py in a folder structure that looks like:
+                |   _main.py
+                |   __init__.py
+                +---my_commands
+                |   |   __init__.py
+                |   +---apps
+                |   |       chrome.py
+                |   |       notepad.py
+                |   |       __init__.py
+                |   +---core
+                |   |       alphabet.py
+                |   |       keys.py
+                |   |       __init__.py
+                |   +---language
+                |   |       c.py
+                |   |       python.py
+                |   |       __init__.py
+        """
+        if isinstance(modules, dict):
+            for k, v in modules.items():
+                deeper_namespace = "%s.%s" % (namespace, k) if namespace else k
+                self.load_modules(v, deeper_namespace)
+        elif isinstance(modules, list):
+            for module in modules:
+                self.load_modules(module, namespace)
+        elif isinstance(modules, str):
+            module_name = "%s.%s" % (namespace, modules) if namespace else modules
+            self.imported_modules.append(importlib.import_module(module_name))
+
+    def reload_modules(self):
+        """
+            Reload all modules loaded using load_modules.
+        """
+        self.clear()
+        for module in self.imported_modules:
+            if PY2:
+                reload(module)
+            else:
+                importlib.reload(module)
 
     def clear(self):
         """
