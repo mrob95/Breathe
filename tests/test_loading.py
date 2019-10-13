@@ -1,14 +1,12 @@
 from .testutils import TText
-import pytest
+import pytest, os
 from dragonfly import get_engine, MimicFailure, AppContext
 from breathe import Breathe, CommandContext
-
+from six import PY2
 engine = get_engine("text")
 
-import os
-
 script_dir = os.path.dirname(__file__)
-file_path = os.path.join(script_dir, "my_grammar/main.py")
+file_path = os.path.join(script_dir, "my_grammar/fruit.py")
 
 def test_loading():
     with open(file_path, "w") as f:
@@ -19,18 +17,18 @@ from ..testutils import TText
 Breathe.add_commands(
     None,
     {
-        "banana": TText("fruit"),
+        "apple": TText("fruit"),
     }
 )
 """
         )
     modules = {
         "tests": {
-            "my_grammar": ["main"],
+            "my_grammar": ["fruit"],
         }
     }
     Breathe.load_modules(modules)
-    engine.mimic("banana")
+    engine.mimic("apple")
 
 def test_reloading():
     with open(file_path, "w") as f:
@@ -46,10 +44,13 @@ Breathe.add_commands(
 )
 """
         )
+    # I have no idea why this is necessary, it's a total hack
+    if PY2:
+        os.remove(file_path + "c")
     engine.mimic("rebuild everything")
-    engine.mimic("parsnip")
     with pytest.raises(MimicFailure):
-        engine.mimic("banana")
+        engine.mimic("apple")
+    engine.mimic("parsnip")
 
 
 def test_clear():
