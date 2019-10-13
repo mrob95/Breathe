@@ -77,7 +77,7 @@ For example, given a directory set up like this:
 ```
 
 Inside `_main.py`, the file which will be loaded by the engine, we load all of our command
-files by passing a dictionary with keys representing folder name and values being either a
+files by passing a dictionary with keys representing folder names and values being either a
 single module to import, a list of modules to import, or another dictionary. Like so:
 ```
 from breathe import Breathe

@@ -179,6 +179,9 @@ class Master(Grammar):
             module_name = "%s.%s" % (namespace, modules) if namespace else modules
             self.imported_modules.append(importlib.import_module(module_name))
 
+    # ------------------------------------------------
+    # Loading helpers
+
     def reload_modules(self):
         """
             Reload all modules loaded using load_modules.
@@ -205,9 +208,6 @@ class Master(Grammar):
         self.non_ccr_grammars = []
         self.global_extras = {}
         self.command_context_dictlist.clear()
-
-    # ------------------------------------------------
-    # Loading helpers
 
     def counter(self):
         """
