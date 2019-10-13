@@ -10,7 +10,7 @@ A convenient API for creating [dragonfly](https://github.com/dictation-toolbox/d
 pip install dfly-breathe
 ```
 
-## Example
+## Instructions
 ### Adding commands
 
 ```python
@@ -95,6 +95,9 @@ Breathe.load_modules(
 
 Given this setup, calling the "rebuild everything" command will reload all of your command
 files, making any changes available.
+
+## Examples
+* [My commands](https://github.com/mrob95/MR-commands)
 
 ## Notes
 * If you are using the kaldi backend, you will need to set `lazy_compilation=False` in the `get_engine` function in your loader file.

@@ -1,14 +1,11 @@
 from dragonfly import (
     Alternative,
-    Compound,
     Context,
     DictList,
     ElementBase,
     Function,
     Grammar,
     Repetition,
-    Rule,
-    Text,
 )
 from .subgrammar import SubGrammar
 from .helpers import construct_commands, construct_extras, check_for_manuals
