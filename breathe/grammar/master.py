@@ -1,17 +1,18 @@
 from dragonfly import (
-    Grammar,
-    Rule,
-    Text,
-    ElementBase,
-    Function,
-    Context,
     Alternative,
     Compound,
+    Context,
     DictList,
+    ElementBase,
+    Function,
+    Grammar,
+    Repetition,
+    Rule,
+    Text,
 )
 from .subgrammar import SubGrammar
 from .helpers import construct_commands, construct_extras, check_for_manuals
-from ..rules import RepeatRule, SimpleRule, ContextSwitcher
+from ..rules import SimpleRule, ContextSwitcher
 from ..elements import BoundCompound, CommandContext
 
 from six import PY2
@@ -74,8 +75,8 @@ class Master(Grammar):
         self.imported_modules = []
         self.add_rule(
             SimpleRule(
-                "rebuilder",
-                BoundCompound(
+                name="rebuilder",
+                element=BoundCompound(
                     "rebuild everything", value=Function(lambda: self.reload_modules())
                 ),
             )
@@ -107,7 +108,10 @@ class Master(Grammar):
             )
 
         if not ccr:
-            rule = SimpleRule(element=Alternative(children), context=context)
+            rule = SimpleRule(
+                element=Alternative(children),
+                context=context
+                )
             grammar = Grammar("NonCCR" + self.counter())
             grammar.add_rule(rule)
             grammar.load()
@@ -247,8 +251,13 @@ class Master(Grammar):
         if not matched_commands:
             return
 
-        rule = RepeatRule(
-            "Repeater%s" % self.counter(), matched_commands, self.MAX_REPETITIONS
+        rule = SimpleRule(
+            name="Repeater%s" % self.counter(),
+            element=Repetition(
+                Alternative(matched_commands),
+                min=1, max=self.MAX_REPETITIONS,
+            ),
+            context=None,
         )
         subgrammar = SubGrammar("SG%s" % self.counter())
         subgrammar.add_rule(rule)
