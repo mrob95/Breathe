@@ -201,6 +201,7 @@ class Master(Grammar):
             self.clear()
             for module_name in self.modules:
                 load_or_reload(module_name)
+            print("All modules reloaded.")
 
     def clear(self):
         """

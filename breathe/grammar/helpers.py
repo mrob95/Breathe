@@ -6,6 +6,7 @@ import warnings
 import sys
 import importlib
 
+
 def construct_extras(extras=None, defaults=None, global_extras=None):
     """
         Takes a list of extras provided by the user, and merges it with all global
@@ -53,7 +54,11 @@ def construct_commands(mapping, extras=None):
         except Exception as e:
             # No need to raise, we can just skip this command
             # Usually due to missing extras
-            warnings.warn(str(e), CommandSkippedWarning)
+            if str(e).startswith("Unknown reference name"):
+                msg = "Missing extra"
+            else:
+                msg = str(e)
+            warnings.warn_explicit(msg, CommandSkippedWarning, str(spec), 0)
     return children
 
 
@@ -84,6 +89,7 @@ def check_for_manuals(context, command_dictlist):
         context._child = check_for_manuals(context._child, command_dictlist)
     return context
 
+
 def load_or_reload(module_name):
     try:
         if module_name not in sys.modules:
@@ -95,7 +101,6 @@ def load_or_reload(module_name):
             else:
                 importlib.reload(module)
     except Exception as e:
-        warnings.warn(
-            "Import of '%s' failed with '%s'" % (module_name, str(e)),
-            ModuleSkippedWarning,
+        warnings.warn_explicit(
+            "Import failed with '%s'" % str(e), ModuleSkippedWarning, module_name, 0
         )
