@@ -75,6 +75,7 @@ Breathe.add_commands(
     with pytest.raises(MimicFailure):
         engine.mimic("apple")
     engine.mimic("parsnip")
+    assert len(Breathe.modules) == 1
 
 
 def test_clear():

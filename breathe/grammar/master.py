@@ -72,8 +72,7 @@ class Master(Grammar):
         self.add_rule(ContextSwitcher(self.command_context_dictlist))
 
         # List[str]
-        self.imported_modules = []
-        self.failed_imports = []
+        self.modules = []
         self.add_rule(
             SimpleRule(
                 name="rebuilder",
@@ -135,7 +134,7 @@ class Master(Grammar):
             assert isinstance(e, ElementBase)
             self.global_extras.update({e.name: e})
 
-    def load_modules(self, modules, namespace=""):
+    def load_modules(self, modules, namespace="", _user_call=True):
         """
             Loads a set of modules into breathe, and makes them available for reloading
             using the "rebuild everything" command.
@@ -175,17 +174,17 @@ class Master(Grammar):
         if isinstance(modules, dict):
             for k, v in modules.items():
                 deeper_namespace = "%s.%s" % (namespace, k) if namespace else k
-                self.load_modules(v, deeper_namespace)
+                self.load_modules(v, deeper_namespace, _user_call)
         elif isinstance(modules, list):
             for module in modules:
-                self.load_modules(module, namespace)
+                self.load_modules(module, namespace, _user_call)
         elif isinstance(modules, str):
             module_name = "%s.%s" % (namespace, modules) if namespace else modules
-            load_or_reload(
-                module_name,
-                successes=self.imported_modules,
-                failures=self.failed_imports,
-            )
+            if _user_call:
+                # If this is the user adding stuff for the first time,
+                # record the names and the order so they can be reloaded.
+                self.modules.append(module_name)
+            load_or_reload(module_name)
 
     # ------------------------------------------------
     # Loading helpers
@@ -194,13 +193,12 @@ class Master(Grammar):
         """
             Reload all modules loaded using load_modules.
         """
-        if not (self.failed_imports or self.imported_modules):
+        if not self.modules:
             raise ModuleNotFoundError(
                 "Nothing found to reload. Did you load modules using 'Breathe.load_modules()'?"
             )
         self.clear()
-        self.load_modules(self.failed_imports)
-        self.load_modules(self.imported_modules)
+        self.load_modules(self.modules, _user_call=False)
 
     def clear(self):
         """

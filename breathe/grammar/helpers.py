@@ -84,13 +84,10 @@ def check_for_manuals(context, command_dictlist):
         context._child = check_for_manuals(context._child, command_dictlist)
     return context
 
-def load_or_reload(module_name, successes, failures):
+def load_or_reload(module_name):
     try:
-        if module_name in failures:
-            failures.remove(module_name)
         if module_name not in sys.modules:
             importlib.import_module(module_name)
-            successes.append(module_name)
         else:
             module = sys.modules[module_name]
             if PY2:
@@ -98,7 +95,6 @@ def load_or_reload(module_name, successes, failures):
             else:
                 importlib.reload(module)
     except Exception as e:
-        failures.append(module_name)
         warnings.warn(
             "Import of '%s' failed with '%s'" % (module_name, str(e)),
             ModuleSkippedWarning,
