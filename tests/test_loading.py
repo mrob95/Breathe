@@ -10,8 +10,10 @@ script_dir = os.path.dirname(__file__)
 file_path = os.path.join(script_dir, "my_grammar/fruit.py")
 
 def test_failed_reload():
-    with pytest.raises(ImportError):
+    with warnings.catch_warnings(record=True) as w:
         Breathe.reload_modules()
+        assert issubclass(w[0].category, Warning)
+
 
 def test_loading_failure():
     with open(file_path, "w") as f:

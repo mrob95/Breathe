@@ -17,6 +17,8 @@ from .helpers import (
 from ..rules import SimpleRule, ContextSwitcher
 from ..elements import BoundCompound, CommandContext
 
+import warnings
+
 """
     Example:
 
@@ -194,11 +196,13 @@ class Master(Grammar):
             Reload all modules loaded using load_modules.
         """
         if not self.modules:
-            raise ImportError(
-                "Nothing found to reload. Did you load modules using 'Breathe.load_modules()'?"
+            warnings.warn(
+                "Nothing found to reload. For modules to be reloadable they must be loaded using 'Breathe.load_modules()'",
+                Warning,
             )
-        self.clear()
-        self.load_modules(self.modules, _user_call=False)
+        else:
+            self.clear()
+            self.load_modules(self.modules, _user_call=False)
 
     def clear(self):
         """
