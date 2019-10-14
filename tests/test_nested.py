@@ -12,6 +12,7 @@ from .testutils import TText
 import pytest
 from breathe import Breathe, CommandContext
 from breathe.errors import CommandSkippedWarning
+from breathe.elements import Sequence, ExecSequence
 import warnings
 
 engine = get_engine("text")
@@ -31,15 +32,15 @@ def test_nested_command():
             "banana": TText("juice"),
         }
     )
-    Breathe.add_nested_commands(
+    Breathe.add_commands(
         AppContext("notepad"),
         {
             "fruit from <sequence1> and <sequence2>": TText("something") + ExecSequence("sequence1") + TText("something else") + ExecSequence("sequence2")
         },
         extras=[
-            Sequence("sequence1", 1, 4),
-            Sequence("sequence2", 1, 1),
-        ]
+            Sequence("sequence1"),
+            Sequence("sequence2", 2),
+        ],
+        nested=True
     )
-
-    engine.mimic("fruit from lemon banana orange and grapefruit")
+    engine.mimic("fruit from lemon banana orange and grapefruit", executable="notepad")

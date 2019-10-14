@@ -15,7 +15,7 @@ from .helpers import (
     load_or_reload,
 )
 from ..rules import SimpleRule, ContextSwitcher
-from ..elements import BoundCompound, CommandContext, TrueContext
+from ..elements import BoundCompound, CommandContext, TrueContext, Sequence
 
 import warnings
 
@@ -254,7 +254,7 @@ class Master(Grammar):
     # ------------------------------------------------
     # Runtime grammar management
 
-    def _add_repeater(self, matches):
+    def _add_repeater(self, matches, nested_matches):
         """
             Takes a tuple of bools, corresponding to which contexts were matched,
             and loads a SubGrammar containing a RepeatRule with all relevant commands in.
@@ -265,16 +265,32 @@ class Master(Grammar):
         matched_commands.extend(self.core_commands)
         if not matched_commands:
             return
-
-        rule = SimpleRule(
+        alts = Alternative(matched_commands)
+        repeater = SimpleRule(
             name="Repeater%s" % self.counter(),
             element=Repetition(
-                Alternative(matched_commands), min=1, max=self.MAX_REPETITIONS
+                alts, min=1, max=self.MAX_REPETITIONS
             ),
             context=None,
         )
         subgrammar = SubGrammar("SG%s" % self.counter())
-        subgrammar.add_rule(rule)
+        subgrammar.add_rule(repeater)
+
+        if nested_matches:
+            matched_nested_commands = []
+            for command_list in [l for (l, b) in zip(self.nested_commands, nested_matches) if b]:
+                matched_nested_commands.extend(command_list)
+            for command in matched_nested_commands:
+                for extra_name in command._extras.keys():
+                    extra = command._extras[extra_name]
+                    if isinstance(extra, Sequence):
+                        command._extras[extra_name] = extra.copy_replace_child(alts)
+            nested_rule = SimpleRule(
+                name="Nested%s" % self.counter(),
+                element=Alternative(matched_nested_commands)
+            )
+            subgrammar.add_rule(nested_rule)
+
         subgrammar.load()
         self.grammar_map[matches] = subgrammar
 
@@ -291,7 +307,8 @@ class Master(Grammar):
         )
 
         if active_contexts not in self.grammar_map:
-            self._add_repeater(active_contexts)
+            matched_nested_contexts = [c.matches(executable, title, handle) for c in self.nested_contexts]
+            self._add_repeater(active_contexts, matched_nested_contexts)
 
         for contexts, subgrammar in self.grammar_map.items():
             if active_contexts == contexts:
