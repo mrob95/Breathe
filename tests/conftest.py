@@ -1,12 +1,7 @@
-import sys
+import os
 
 def pytest_configure(config):
-    import sys
-
-    sys._called_from_test = True
-
+    os.environ['BREATHE_TESTING'] = "True"
 
 def pytest_unconfigure(config):
-    import sys
-
-    del sys._called_from_test
+    del os.environ['BREATHE_TESTING']

@@ -1,12 +1,12 @@
 from .grammar.master import Master
 from .elements import CommandContext
-import sys as _sys
+import os
 
-if not hasattr(_sys, "_called_from_test"):
-    # Some discussion here of whether this pattern is a good idea, I think it's fine for now.
-    # https://stackoverflow.com/questions/9561042/python-init-py-and-initialization-of-objects-in-a-code
-    Breathe = Master()
-else:
+# Some discussion here of whether this pattern is a good idea, I think it's fine for now.
+# https://stackoverflow.com/questions/9561042/python-init-py-and-initialization-of-objects-in-a-code
+
+if os.getenv('BREATHE_TESTING'):
     from dragonfly import get_engine
-    engine = get_engine("text")
-    Breathe = Master(engine=engine)
+    Breathe = Master(engine=get_engine("text"))
+else:
+    Breathe = Master()
