@@ -15,7 +15,7 @@ from .helpers import (
     load_or_reload,
 )
 from ..rules import SimpleRule, ContextSwitcher
-from ..elements import BoundCompound, CommandContext
+from ..elements import BoundCompound, CommandContext, TrueContext
 
 import warnings
 
@@ -55,6 +55,9 @@ class Master(Grammar):
         # List[Context]
         self.contexts = []
 
+        self.nested_commands = []
+        self.nested_contexts = []
+
         # Dict[Tuple[bool], SubGrammar]
         # Key of dictionary is the contexts the rule matched
         self.grammar_map = {}
@@ -73,7 +76,7 @@ class Master(Grammar):
         )
         self.add_rule(ContextSwitcher(self.command_context_dictlist))
 
-        # List[str]
+        # List[str] - module names
         self.modules = []
         self.add_rule(
             SimpleRule(
@@ -89,7 +92,7 @@ class Master(Grammar):
     # API
 
     def add_commands(
-        self, context=None, mapping=None, extras=None, defaults=None, ccr=True
+        self, context=None, mapping=None, extras=None, defaults=None, ccr=True, nested=False
     ):
         """Add a set of commands which can be recognised continuously.
 
@@ -109,19 +112,27 @@ class Master(Grammar):
                 context, self.command_context_dictlist
             )
 
-        if not ccr:
-            rule = SimpleRule(element=Alternative(children), context=context)
-            grammar = Grammar("NonCCR" + self.counter())
-            grammar.add_rule(rule)
-            grammar.load()
-            self.non_ccr_grammars.append(grammar)
-        elif context is None:
-            self.core_commands.extend(children)
+        if not nested:
+            if not ccr:
+                rule = SimpleRule(element=Alternative(children), context=context)
+                grammar = Grammar("NonCCR" + self.counter())
+                grammar.add_rule(rule)
+                grammar.load()
+                self.non_ccr_grammars.append(grammar)
+            elif context is None:
+                self.core_commands.extend(children)
+            else:
+                assert isinstance(context, Context)
+                self.context_commands.append(children)
+                self.contexts.append(context)
+                self._pad_matches()
         else:
+            if context is None:
+                context = TrueContext()
             assert isinstance(context, Context)
-            self.context_commands.append(children)
-            self.contexts.append(context)
-            self._pad_matches()
+            self.nested_commands.append(children)
+            self.nested_contexts.append(context)
+
 
     def add_global_extras(self, *extras):
         """
