@@ -194,7 +194,7 @@ class Master(Grammar):
             Reload all modules loaded using load_modules.
         """
         if not self.modules:
-            raise ModuleNotFoundError(
+            raise ImportError(
                 "Nothing found to reload. Did you load modules using 'Breathe.load_modules()'?"
             )
         self.clear()

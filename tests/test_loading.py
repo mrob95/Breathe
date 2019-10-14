@@ -10,7 +10,7 @@ script_dir = os.path.dirname(__file__)
 file_path = os.path.join(script_dir, "my_grammar/fruit.py")
 
 def test_failed_reload():
-    with pytest.raises(ModuleNotFoundError):
+    with pytest.raises(ImportError):
         Breathe.reload_modules()
 
 def test_loading_failure():
