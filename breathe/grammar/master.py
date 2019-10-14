@@ -136,7 +136,7 @@ class Master(Grammar):
             assert isinstance(e, ElementBase)
             self.global_extras.update({e.name: e})
 
-    def load_modules(self, modules, namespace="", _user_call=True):
+    def load_modules(self, modules, namespace=""):
         """
             Loads a set of modules into breathe, and makes them available for reloading
             using the "rebuild everything" command.
@@ -176,16 +176,13 @@ class Master(Grammar):
         if isinstance(modules, dict):
             for k, v in modules.items():
                 deeper_namespace = "%s.%s" % (namespace, k) if namespace else k
-                self.load_modules(v, deeper_namespace, _user_call)
+                self.load_modules(v, deeper_namespace)
         elif isinstance(modules, list):
             for module in modules:
-                self.load_modules(module, namespace, _user_call)
+                self.load_modules(module, namespace)
         elif isinstance(modules, str):
             module_name = "%s.%s" % (namespace, modules) if namespace else modules
-            if _user_call:
-                # If this is the user adding stuff for the first time,
-                # record the names and the order so they can be reloaded.
-                self.modules.append(module_name)
+            self.modules.append(module_name)
             load_or_reload(module_name)
 
     # ------------------------------------------------
@@ -202,7 +199,8 @@ class Master(Grammar):
             )
         else:
             self.clear()
-            self.load_modules(self.modules, _user_call=False)
+            for module_name in self.modules:
+                load_or_reload(module_name)
 
     def clear(self):
         """

@@ -81,4 +81,4 @@ Breathe.add_commands(
 
 def test_clear():
     Breathe.clear()
-    Breathe.imported_modules = []
+    Breathe.modules = []
