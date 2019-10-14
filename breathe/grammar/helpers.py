@@ -1,9 +1,10 @@
 from dragonfly import ElementBase, Function
 from ..elements import BoundCompound, CommandContext
-from ..errors import CommandSkippedWarning
-from six import string_types
+from ..errors import CommandSkippedWarning, ModuleSkippedWarning
+from six import string_types, PY2
 import warnings
-
+import sys
+import importlib
 
 def construct_extras(extras=None, defaults=None, global_extras=None):
     """
@@ -82,3 +83,23 @@ def check_for_manuals(context, command_dictlist):
     elif hasattr(context, "_child"):
         context._child = check_for_manuals(context._child, command_dictlist)
     return context
+
+def load_or_reload(module_name, successes, failures):
+    try:
+        if module_name in failures:
+            failures.remove(module_name)
+        if module_name not in sys.modules:
+            importlib.import_module(module_name)
+            successes.append(module_name)
+        else:
+            module = sys.modules[module_name]
+            if PY2:
+                reload(module)
+            else:
+                importlib.reload(module)
+    except Exception as e:
+        failures.append(module_name)
+        warnings.warn(
+            "Import of '%s' failed with '%s'" % (module_name, str(e)),
+            ModuleSkippedWarning,
+        )

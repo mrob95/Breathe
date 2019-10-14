@@ -8,12 +8,14 @@ from dragonfly import (
     Repetition,
 )
 from .subgrammar import SubGrammar
-from .helpers import construct_commands, construct_extras, check_for_manuals
+from .helpers import (
+    construct_commands,
+    construct_extras,
+    check_for_manuals,
+    load_or_reload,
+)
 from ..rules import SimpleRule, ContextSwitcher
 from ..elements import BoundCompound, CommandContext
-
-from six import PY2
-import importlib
 
 """
     Example:
@@ -69,7 +71,9 @@ class Master(Grammar):
         )
         self.add_rule(ContextSwitcher(self.command_context_dictlist))
 
+        # List[str]
         self.imported_modules = []
+        self.failed_imports = []
         self.add_rule(
             SimpleRule(
                 name="rebuilder",
@@ -105,10 +109,7 @@ class Master(Grammar):
             )
 
         if not ccr:
-            rule = SimpleRule(
-                element=Alternative(children),
-                context=context
-                )
+            rule = SimpleRule(element=Alternative(children), context=context)
             grammar = Grammar("NonCCR" + self.counter())
             grammar.add_rule(rule)
             grammar.load()
@@ -180,7 +181,11 @@ class Master(Grammar):
                 self.load_modules(module, namespace)
         elif isinstance(modules, str):
             module_name = "%s.%s" % (namespace, modules) if namespace else modules
-            self.imported_modules.append(importlib.import_module(module_name))
+            load_or_reload(
+                module_name,
+                successes=self.imported_modules,
+                failures=self.failed_imports,
+            )
 
     # ------------------------------------------------
     # Loading helpers
@@ -189,12 +194,13 @@ class Master(Grammar):
         """
             Reload all modules loaded using load_modules.
         """
+        if not (self.failed_imports or self.imported_modules):
+            raise ModuleNotFoundError(
+                "Nothing found to reload. Did you load modules using 'Breathe.load_modules()'?"
+            )
         self.clear()
-        for module in self.imported_modules:
-            if PY2:
-                reload(module)
-            else:
-                importlib.reload(module)
+        self.load_modules(self.failed_imports)
+        self.load_modules(self.imported_modules)
 
     def clear(self):
         """
@@ -251,8 +257,7 @@ class Master(Grammar):
         rule = SimpleRule(
             name="Repeater%s" % self.counter(),
             element=Repetition(
-                Alternative(matched_commands),
-                min=1, max=self.MAX_REPETITIONS,
+                Alternative(matched_commands), min=1, max=self.MAX_REPETITIONS
             ),
             context=None,
         )

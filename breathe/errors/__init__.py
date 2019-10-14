@@ -1,1 +1,1 @@
-from .warnings import CommandSkippedWarning
+from .warnings import CommandSkippedWarning, ModuleSkippedWarning
