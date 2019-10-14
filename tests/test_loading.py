@@ -33,7 +33,6 @@ Breathe.add_commands(,,,
         }
     }
     with warnings.catch_warnings(record=True) as w:
-        warnings.simplefilter("always")
         Breathe.load_modules(modules)
         assert issubclass(w[0].category, ModuleSkippedWarning)
 

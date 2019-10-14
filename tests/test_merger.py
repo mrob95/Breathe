@@ -75,7 +75,6 @@ def test_nomapping_commands():
 
 def test_invalid():
     with warnings.catch_warnings(record=True) as w:
-        warnings.simplefilter("always")
         Breathe.add_commands(
             AppContext("code.exe"),
             {
@@ -85,6 +84,8 @@ def test_invalid():
         )
         assert len(w) == 2
         assert issubclass(w[0].category, CommandSkippedWarning)
+    assert len(Breathe.contexts) == 1
+    assert len(Breathe.context_commands) == 1
 
 
 def test_clear():
