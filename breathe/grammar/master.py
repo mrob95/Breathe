@@ -16,7 +16,7 @@ from .helpers import (
     process_nested_commands
 )
 from ..rules import SimpleRule, ContextSwitcher
-from ..elements import BoundCompound, CommandContext, TrueContext, Sequence
+from ..elements import BoundCompound, CommandContext, TrueContext, Nested
 
 import warnings
 

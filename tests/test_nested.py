@@ -12,7 +12,7 @@ from .testutils import TText
 import pytest
 from breathe import Breathe, CommandContext
 from breathe.errors import CommandSkippedWarning
-from breathe.elements import Sequence, ExecSequence
+from breathe.elements import Nested, ExecNested
 import warnings
 
 engine = get_engine("text")
@@ -27,11 +27,11 @@ def test_nested_command():
         AppContext("notepad"),
         {
             "fruit from <sequence1> and <sequence2> [<n>]": TText("something")
-            + ExecSequence("sequence1")
+            + ExecNested("sequence1")
             + TText("something else")
-            + ExecSequence("sequence2")* Repeat("n")
+            + ExecNested("sequence2")* Repeat("n")
         },
-        extras=[Sequence("sequence1"), Sequence("sequence2", 2), IntegerRef("n", 1, 10, 1)],
+        extras=[Nested("sequence1"), Nested("sequence2", 2), IntegerRef("n", 1, 10, 1)],
         nested=True,
     )
 
@@ -45,11 +45,11 @@ def test_global_nested():
         None,
         {
             "<sequence1> are preferable to <sequence2>": TText("something")
-            + ExecSequence("sequence1")
+            + ExecNested("sequence1")
             + TText("something else")
-            + ExecSequence("sequence2")
+            + ExecNested("sequence2")
         },
-        extras=[Sequence("sequence1"), Sequence("sequence2", 3)],
+        extras=[Nested("sequence1"), Nested("sequence2", 3)],
         nested=True,
     )
 

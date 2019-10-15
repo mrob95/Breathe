@@ -1,5 +1,5 @@
 from dragonfly import ElementBase, Function, Repetition
-from ..elements import BoundCompound, CommandContext, Sequence
+from ..elements import BoundCompound, CommandContext, Nested
 from ..errors import CommandSkippedWarning, ModuleSkippedWarning
 from six import string_types, PY2
 import warnings
@@ -110,7 +110,7 @@ def process_nested_commands(command_lists, alts):
     for command_list in command_lists:
         new_extras = {}
         for n, e in command_list[0]._extras.items():
-            if isinstance(e, Sequence):
+            if isinstance(e, Nested):
                 new_extras[n] = Repetition(alts, e.min, e.max, e.name, e.default)
             else:
                 new_extras[n] = e

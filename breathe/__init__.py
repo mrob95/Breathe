@@ -1,5 +1,5 @@
 from .grammar.master import Master
-from .elements import CommandContext
+from .elements import CommandContext, Nested, ExecNested
 import os
 
 # Some discussion here of whether this pattern is a good idea, I think it's fine for now.
