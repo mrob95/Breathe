@@ -92,7 +92,13 @@ class Master(Grammar):
     # API
 
     def add_commands(
-        self, context=None, mapping=None, extras=None, defaults=None, ccr=True, nested=False
+        self,
+        context=None,
+        mapping=None,
+        extras=None,
+        defaults=None,
+        ccr=True,
+        nested=False,
     ):
         """Add a set of commands which can be recognised continuously.
 
@@ -132,7 +138,6 @@ class Master(Grammar):
             assert isinstance(context, Context)
             self.nested_commands.append(children)
             self.nested_contexts.append(context)
-
 
     def add_global_extras(self, *extras):
         """
@@ -268,9 +273,7 @@ class Master(Grammar):
         alts = Alternative(matched_commands)
         repeater = SimpleRule(
             name="Repeater%s" % self.counter(),
-            element=Repetition(
-                alts, min=1, max=self.MAX_REPETITIONS
-            ),
+            element=Repetition(alts, min=1, max=self.MAX_REPETITIONS),
             context=None,
         )
         subgrammar = SubGrammar("SG%s" % self.counter())
@@ -278,16 +281,25 @@ class Master(Grammar):
 
         if nested_matches:
             matched_nested_commands = []
-            for command_list in [l for (l, b) in zip(self.nested_commands, nested_matches) if b]:
-                matched_nested_commands.extend(command_list)
-            for command in matched_nested_commands:
-                for extra_name in command._extras.keys():
-                    extra = command._extras[extra_name]
-                    if isinstance(extra, Sequence):
-                        command._extras[extra_name] = extra.copy_replace_child(alts)
+            def check_extras(e):
+                if isinstance(e, Sequence):
+                    return Repetition(alts, e.min, e.max, e.name, e.default)
+                else:
+                    return e
+            for command_list in [
+                l for (l, b) in zip(self.nested_commands, nested_matches) if b
+            ]:
+                new_extras = {
+                    n: check_extras(e) for n, e in command_list[0]._extras.items()
+                }
+                new_command_list = [
+                    BoundCompound(c._spec, new_extras, value=c._value)
+                    for c in command_list
+                ]
+                matched_nested_commands.extend(new_command_list)
             nested_rule = SimpleRule(
                 name="Nested%s" % self.counter(),
-                element=Alternative(matched_nested_commands)
+                element=Alternative(matched_nested_commands),
             )
             subgrammar.add_rule(nested_rule)
 
@@ -307,7 +319,9 @@ class Master(Grammar):
         )
 
         if active_contexts not in self.grammar_map:
-            matched_nested_contexts = [c.matches(executable, title, handle) for c in self.nested_contexts]
+            matched_nested_contexts = [
+                c.matches(executable, title, handle) for c in self.nested_contexts
+            ]
             self._add_repeater(active_contexts, matched_nested_contexts)
 
         for contexts, subgrammar in self.grammar_map.items():
