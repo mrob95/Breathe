@@ -13,6 +13,7 @@ from .helpers import (
     construct_extras,
     check_for_manuals,
     load_or_reload,
+    process_nested_commands
 )
 from ..rules import SimpleRule, ContextSwitcher
 from ..elements import BoundCompound, CommandContext, TrueContext, Sequence
@@ -280,23 +281,10 @@ class Master(Grammar):
         subgrammar.add_rule(repeater)
 
         if nested_matches:
-            matched_nested_commands = []
-            def check_extras(e):
-                if isinstance(e, Sequence):
-                    return Repetition(alts, e.min, e.max, e.name, e.default)
-                else:
-                    return e
-            for command_list in [
+            command_lists = [
                 l for (l, b) in zip(self.nested_commands, nested_matches) if b
-            ]:
-                new_extras = {
-                    n: check_extras(e) for n, e in command_list[0]._extras.items()
-                }
-                new_command_list = [
-                    BoundCompound(c._spec, new_extras, value=c._value)
-                    for c in command_list
-                ]
-                matched_nested_commands.extend(new_command_list)
+            ]
+            matched_nested_commands = process_nested_commands(command_lists, alts)
             nested_rule = SimpleRule(
                 name="Nested%s" % self.counter(),
                 element=Alternative(matched_nested_commands),

@@ -26,22 +26,37 @@ def test_nested_command():
     Breathe.add_commands(
         AppContext("notepad"),
         {
-            "fruit from <sequence1> and <sequence2>": TText("something")
+            "fruit from <sequence1> and <sequence2> [<n>]": TText("something")
             + ExecSequence("sequence1")
             + TText("something else")
-            + ExecSequence("sequence2")
+            + ExecSequence("sequence2")* Repeat("n")
         },
-        extras=[Sequence("sequence1"), Sequence("sequence2", 2)],
+        extras=[Sequence("sequence1"), Sequence("sequence2", 2), IntegerRef("n", 1, 10, 1)],
         nested=True,
     )
-    engine.mimic("lemon", executable="notepad")
-    engine.mimic("fruit from lemon banana orange and grapefruit", executable="notepad")
-
 
 def test_nested_command2():
     Breathe.add_commands(
         AppContext(title="chrome"), {"pear": TText("juice"), "grape": TText("juice")}
     )
+
+def test_global_nested():
+    Breathe.add_commands(
+        None,
+        {
+            "<sequence1> are preferable to <sequence2>": TText("something")
+            + ExecSequence("sequence1")
+            + TText("something else")
+            + ExecSequence("sequence2")
+        },
+        extras=[Sequence("sequence1"), Sequence("sequence2", 3)],
+        nested=True,
+    )
+
+def test_recognition():
+    engine.mimic("lemon", executable="notepad")
+    engine.mimic("fruit from lemon banana orange and grapefruit five", executable="notepad")
+
     engine.mimic(
         "fruit from pear banana orange and grapefruit",
         executable="notepad",
@@ -52,6 +67,8 @@ def test_nested_command2():
             "fruit from pear banana orange and grapefruit", executable="notepad"
         )
 
+    engine.mimic("orange grapefruit are preferable to grapefruit")
+    engine.mimic("orange grapefruit are preferable to lemon banana", executable="notepad")
 
 def test_clear():
     Breathe.clear()

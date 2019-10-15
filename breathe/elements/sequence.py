@@ -1,13 +1,10 @@
 from dragonfly import Repetition, ActionBase, Empty
 
-
 class Sequence(Repetition):
     def __init__(self, name, max=4, min=1, default=None):
         Repetition.__init__(
             self, child=Empty(), min=min, max=max, name=name, default=default
         )
-
-
 
 
 class ExecSequence(ActionBase):
