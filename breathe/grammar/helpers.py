@@ -76,8 +76,8 @@ def process_top_level_commands(command_lists, alts):
         all of the ccr commands which will be active in this context (alts).
 
         We now use these to replace the CommandsRef placeholders with
-        Repetition(alts) in a new extras dict, and recreate the commands using
-        this dict.
+        Repetition(alts) in a new extras dict, and recreate the top level
+        commands using this dict.
     """
     commands = []
     for command_list in command_lists:
