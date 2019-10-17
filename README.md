@@ -1,4 +1,5 @@
-# Breathe [![Build Status](https://travis-ci.org/mrob95/Breathe.svg?branch=master)](https://travis-ci.org/mrob95/Breathe)
+# Breathe
+[![Build Status](https://travis-ci.org/mrob95/Breathe.svg?branch=master)](https://travis-ci.org/mrob95/Breathe) [![codecov](https://codecov.io/gh/mrob95/Breathe/branch/master/graph/badge.svg)](https://codecov.io/gh/mrob95/Breathe)
 A convenient API for creating [dragonfly](https://github.com/dictation-toolbox/dragonfly) grammars with automatic CCR (continuous command recognition).
 
 * Very quick start-up
