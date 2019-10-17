@@ -109,8 +109,9 @@ class Master(Grammar):
             extras (list) -- Extras which will be available for these commands (default: None)
             defaults (dict) -- Defaults for the extras, if necessary (default: None)
             ccr (bool) -- Whether these commands should be recognised continuously (default: True)
+            top_level (bool) -- Whether these commands our top level, referencing sequences of normal commands (default: False)
         """
-        full_extras = construct_extras(extras, defaults, self.global_extras)
+        full_extras = construct_extras(extras, defaults, self.global_extras, top_level)
         children = construct_commands(mapping, full_extras)
         if not children:
             return
@@ -227,6 +228,8 @@ class Master(Grammar):
         self.core_commands = []
         self.context_commands = []
         self.contexts = []
+        self.top_level_commands = []
+        self.top_level_contexts = []
         for subgrammar in self.grammar_map.values():
             subgrammar.unload()
         for grammar in self.non_ccr_grammars:

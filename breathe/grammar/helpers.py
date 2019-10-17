@@ -1,13 +1,13 @@
 from dragonfly import ElementBase, Function, Repetition
 from ..elements import BoundCompound, CommandContext, CommandsRef
-from ..errors import CommandSkippedWarning, ModuleSkippedWarning
+from ..errors import CommandSkippedWarning, ModuleSkippedWarning, ExtraSkippedWarning
 from six import string_types, PY2
 import warnings
 import sys
 import importlib
 
 
-def construct_extras(extras=None, defaults=None, global_extras=None):
+def construct_extras(extras=None, defaults=None, global_extras=None, top_level=False):
     """
         Takes a list of extras provided by the user, and merges it with all global
         extras to produce the {name: extra} dictionary that dragonfly expects.
@@ -26,6 +26,14 @@ def construct_extras(extras=None, defaults=None, global_extras=None):
         assert isinstance(defaults, dict)
         for e in extras:
             assert isinstance(e, ElementBase)
+            if not top_level and isinstance(e, CommandsRef):
+                # Trying to add top level commands amongst normal CCR commands
+                # seems like a likely mistake so it needs to fail gracefully.
+                msg = "Attempting to use CommandsRef in commands which are not" \
+                    "marked as top level. Separate these commands from normal commands" \
+                    "and add them using 'Breathe.add_commands(..., top_level=True)."
+                warnings.warn_explicit(msg, ExtraSkippedWarning, str(e), 0)
+                continue
             if not e.has_default() and e.name in defaults:
                 e._default = defaults[e.name]
             full_extras[e.name] = e
@@ -60,6 +68,31 @@ def construct_commands(mapping, extras=None):
                 msg = str(e)
             warnings.warn_explicit(msg, CommandSkippedWarning, str(spec), 0)
     return children
+
+
+def process_top_level_commands(command_lists, alts):
+    """
+        Once we have begun creating a new subgrammar, we have access to
+        all of the ccr commands which will be active in this context (alts).
+
+        We now use these to replace the CommandsRef placeholders with
+        Repetition(alts) in a new extras dict, and recreate the commands using
+        this dict.
+    """
+    commands = []
+    for command_list in command_lists:
+        new_extras = {}
+        for n, e in command_list[0]._extras.items():
+            if isinstance(e, CommandsRef):
+                new_extras[n] = Repetition(alts, e.min, e.max, e.name, e.default)
+            else:
+                new_extras[n] = e
+        new_command_list = [
+            BoundCompound(c._spec, new_extras, value=c._value)
+            for c in command_list
+        ]
+        commands.extend(new_command_list)
+    return commands
 
 
 def check_for_manuals(context, command_dictlist):
@@ -104,19 +137,3 @@ def load_or_reload(module_name):
         warnings.warn_explicit(
             "Import failed with '%s'" % str(e), ModuleSkippedWarning, module_name, 0
         )
-
-def process_top_level_commands(command_lists, alts):
-    commands = []
-    for command_list in command_lists:
-        new_extras = {}
-        for n, e in command_list[0]._extras.items():
-            if isinstance(e, CommandsRef):
-                new_extras[n] = Repetition(alts, e.min, e.max, e.name, e.default)
-            else:
-                new_extras[n] = e
-        new_command_list = [
-            BoundCompound(c._spec, new_extras, value=c._value)
-            for c in command_list
-        ]
-        commands.extend(new_command_list)
-    return commands
