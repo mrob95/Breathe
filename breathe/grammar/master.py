@@ -13,10 +13,10 @@ from .helpers import (
     construct_extras,
     check_for_manuals,
     load_or_reload,
-    process_nested_commands
+    process_top_level_commands
 )
 from ..rules import SimpleRule, ContextSwitcher
-from ..elements import BoundCompound, CommandContext, TrueContext, Nested
+from ..elements import BoundCompound, CommandContext, TrueContext, CommandsRef
 
 import warnings
 
@@ -56,8 +56,8 @@ class Master(Grammar):
         # List[Context]
         self.contexts = []
 
-        self.nested_commands = []
-        self.nested_contexts = []
+        self.top_level_commands = []
+        self.top_level_contexts = []
 
         # Dict[Tuple[bool], SubGrammar]
         # Key of dictionary is the contexts the rule matched
@@ -99,7 +99,7 @@ class Master(Grammar):
         extras=None,
         defaults=None,
         ccr=True,
-        nested=False,
+        top_level=False,
     ):
         """Add a set of commands which can be recognised continuously.
 
@@ -119,7 +119,7 @@ class Master(Grammar):
                 context, self.command_context_dictlist
             )
 
-        if not nested:
+        if not top_level:
             if not ccr:
                 rule = SimpleRule(element=Alternative(children), context=context)
                 grammar = Grammar("NonCCR" + self.counter())
@@ -137,8 +137,8 @@ class Master(Grammar):
             if context is None:
                 context = TrueContext()
             assert isinstance(context, Context)
-            self.nested_commands.append(children)
-            self.nested_contexts.append(context)
+            self.top_level_commands.append(children)
+            self.top_level_contexts.append(context)
 
     def add_global_extras(self, *extras):
         """
@@ -260,7 +260,7 @@ class Master(Grammar):
     # ------------------------------------------------
     # Runtime grammar management
 
-    def _add_repeater(self, matches, nested_matches):
+    def _add_repeater(self, matches, top_level_matches):
         """
             Takes a tuple of bools, corresponding to which contexts were matched,
             and loads a SubGrammar containing a RepeatRule with all relevant commands in.
@@ -280,16 +280,16 @@ class Master(Grammar):
         subgrammar = SubGrammar("SG%s" % self.counter())
         subgrammar.add_rule(repeater)
 
-        if nested_matches:
+        if top_level_matches:
             command_lists = [
-                l for (l, b) in zip(self.nested_commands, nested_matches) if b
+                l for (l, b) in zip(self.top_level_commands, top_level_matches) if b
             ]
-            matched_nested_commands = process_nested_commands(command_lists, alts)
-            nested_rule = SimpleRule(
-                name="Nested%s" % self.counter(),
-                element=Alternative(matched_nested_commands),
+            matched_top_level_commands = process_top_level_commands(command_lists, alts)
+            top_level_rules = SimpleRule(
+                name="CommandsRef%s" % self.counter(),
+                element=Alternative(matched_top_level_commands),
             )
-            subgrammar.add_rule(nested_rule)
+            subgrammar.add_rule(top_level_rules)
 
         subgrammar.load()
         self.grammar_map[matches] = subgrammar
@@ -307,10 +307,10 @@ class Master(Grammar):
         )
 
         if active_contexts not in self.grammar_map:
-            matched_nested_contexts = [
-                c.matches(executable, title, handle) for c in self.nested_contexts
+            matched_top_level_contexts = [
+                c.matches(executable, title, handle) for c in self.top_level_contexts
             ]
-            self._add_repeater(active_contexts, matched_nested_contexts)
+            self._add_repeater(active_contexts, matched_top_level_contexts)
 
         for contexts, subgrammar in self.grammar_map.items():
             if active_contexts == contexts:
