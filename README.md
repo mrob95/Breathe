@@ -5,6 +5,7 @@ A convenient API for creating [dragonfly](https://github.com/dictation-toolbox/d
 * Command activity can be controlled either using dragonfly contexts or using "enable" and "disable" commands.
 * All commands which match the current context may be chained together in any order in the same utterance.
 
+
 ## Installation
 ```
 pip install dfly-breathe
@@ -79,7 +80,7 @@ For example, given a directory set up like this:
 Inside `_main.py`, the file which will be loaded by the engine, we load all of our command
 files by passing a dictionary with keys representing folder names and values being either a
 single module to import, a list of modules to import, or another dictionary. Like so:
-```
+```python
 from breathe import Breathe
 
 Breathe.load_modules(
@@ -95,6 +96,45 @@ Breathe.load_modules(
 
 Given this setup, calling the "rebuild everything" command will reload all of your command
 files, making any changes available.
+
+### Custom top level commands
+**Advanced feature, if you are just getting started you should ignore this.**
+
+Top level commands allow you to embed sequences of breathe
+CCR commands inside other commands. This gives finer control over
+the way in which commands are recognised and executed.
+
+Top level commands should be added in a separate `add_commands` call
+with the `top_level` option set to `True`. A couple of new elements -
+`Exec` and `CommandsRef` - are required to control them.
+
+For example in the following,
+the first command implements "greedy" dictation by creating
+a top level command which recognises between zero and twelve of the commands
+which are active in the current context, followed by a dictation command
+which will consume the rest of the utterance. The second allows an arbitrary sequence of commands to be repeated a
+given number of times.
+
+```python
+from dragonfly import *
+from breathe import Breathe, CommandsRef, Exec
+
+Breathe.add_commands(
+    None,
+    {
+        "[<sequence_of_commands>] dictate <text>":
+            Exec("sequence_of_commands") + Text("%(text)s"),
+        "<sequence_of_commands> and repeat that <n> times":
+            Exec("sequence_of_commands") * Repeat("n"),
+    },
+    [
+        Dictation("text"),
+        IntegerRef("n", 1, 100),
+        CommandsRef("sequence_of_commands", 12)
+    ],
+    top_level=True
+)
+```
 
 ## Examples
 * [My commands](https://github.com/mrob95/MR-commands)
