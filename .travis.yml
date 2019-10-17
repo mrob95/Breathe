@@ -5,7 +5,10 @@ python:
 
 install:
   - pip install .
-  - pip install pytest pytest-cov
+  - pip install pytest pytest-cov codecov
 
 script:
   - pytest --cov-report term-missing --cov=breathe tests/
+
+after_success:
+  - codecov
