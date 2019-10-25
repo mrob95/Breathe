@@ -18,6 +18,7 @@ from .helpers import (
 from ..rules import SimpleRule, ContextSwitcher
 from ..elements import BoundCompound, CommandContext, TrueContext, CommandsRef
 
+from six import string_types
 import warnings
 import time
 
@@ -199,9 +200,10 @@ class Master(Grammar):
         elif isinstance(modules, list):
             for module in modules:
                 self.load_modules(module, namespace)
-        elif isinstance(modules, str):
+        elif isinstance(modules, string_types):
             module_name = "%s.%s" % (namespace, modules) if namespace else modules
             self.modules.append(module_name)
+            print("Loading module %s" % module_name)
             load_or_reload(module_name)
 
     # ------------------------------------------------
@@ -331,4 +333,4 @@ class Master(Grammar):
 
         elapsed = time.time()-start
         if new:
-            print("Compilation took %s" % elapsed)
+            print("Grammar added, took %ss" % elapsed)
