@@ -52,7 +52,7 @@ Breathe.add_commands(
 )
 """
         )
-    engine.mimic("rebuild everything")
+    engine.mimic("rebuild everything test")
     engine.mimic("apple")
 
 def test_reloading():
@@ -72,7 +72,7 @@ Breathe.add_commands(
     # I have no idea why this is necessary, it's a total hack
     if PY2:
         os.remove(file_path + "c")
-    engine.mimic("rebuild everything")
+    engine.mimic("rebuild everything test")
     with pytest.raises(MimicFailure):
         engine.mimic("apple")
     engine.mimic("parsnip")

@@ -20,7 +20,7 @@ from ..elements import BoundCompound, CommandContext, TrueContext, CommandsRef
 
 from six import string_types
 import warnings
-import time
+import os, time
 
 """
     Example:
@@ -70,25 +70,10 @@ class Master(Grammar):
         # Dict[str, ElementBase]
         self.global_extras = {}
 
-        # Command contexts are switched by user commands like "enable breathe"
-        self.everything_context = CommandContext("breathe", enabled=True)
-        # The DictList makes it easy to add new mappings from command context names
-        # which will be recognised by the "enable/disable" command to the contexts themselves
-        self.command_context_dictlist = DictList(
-            "manual_contexts", {"breathe": self.everything_context}
-        )
-        self.add_rule(ContextSwitcher(self.command_context_dictlist))
-
         # List[str] - module names
         self.modules = []
-        self.add_rule(
-            SimpleRule(
-                name="rebuilder",
-                element=BoundCompound(
-                    "rebuild everything", value=Function(lambda: self.reload_modules())
-                ),
-            )
-        )
+
+        self.add_builtin_rules()
         self.load()
 
     # ------------------------------------------------
@@ -262,6 +247,29 @@ class Master(Grammar):
             matches = tuple(padded)
             if matches not in self.grammar_map:
                 self.grammar_map[matches] = v
+
+    def add_builtin_rules(self):
+        # Command contexts are switched by user commands like "enable breathe"
+        self.everything_context = CommandContext("breathe", enabled=True)
+        # The DictList makes it easy to add new mappings from command context names
+        # which will be recognised by the "enable/disable" command to the contexts themselves
+        self.command_context_dictlist = DictList(
+            "manual_contexts", {"breathe": self.everything_context}
+        )
+        self.add_rule(ContextSwitcher(self.command_context_dictlist))
+
+        rebuild_command = os.getenv("BREATHE_REBUILD_COMMAND")
+        if not rebuild_command:
+            rebuild_command = "rebuild everything"
+
+        self.add_rule(
+            SimpleRule(
+                name="rebuilder",
+                element=BoundCompound(
+                    rebuild_command, value=Function(lambda: self.reload_modules())
+                ),
+            )
+        )
 
     # ------------------------------------------------
     # Runtime grammar management
