@@ -140,6 +140,7 @@ Breathe.add_commands(
 
 ## Examples
 * [My commands](https://github.com/mrob95/MR-commands)
+* [Mathfly](https://github.com/mrob95/mathfly)
 
 ## Notes
 * If you are using the kaldi backend, you will need to set `lazy_compilation=False` in the `get_engine` function in your loader file.
