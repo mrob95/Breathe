@@ -103,7 +103,7 @@ class Master(Grammar):
         if not children:
             return
         if context is not None:
-            context = self.everything_context & check_for_manuals(
+            context = check_for_manuals(
                 context, self.command_context_dictlist
             )
 
@@ -249,12 +249,10 @@ class Master(Grammar):
                 self.grammar_map[matches] = v
 
     def add_builtin_rules(self):
-        # Command contexts are switched by user commands like "enable breathe"
-        self.everything_context = CommandContext("breathe", enabled=True)
         # The DictList makes it easy to add new mappings from command context names
         # which will be recognised by the "enable/disable" command to the contexts themselves
         self.command_context_dictlist = DictList(
-            "manual_contexts", {"breathe": self.everything_context}
+            "manual_contexts"
         )
         self.add_rule(ContextSwitcher(self.command_context_dictlist))
 

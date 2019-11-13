@@ -47,13 +47,6 @@ def test_negated_context():
     with pytest.raises(MimicFailure):
         engine.mimic(["steak"])
 
-def test_everything_context():
-    engine.mimic(["disable", "breathe"])
-    with pytest.raises(MimicFailure):
-        engine.mimic(["spaghetti"], executable="italy")
-    engine.mimic(["enable", "breathe"])
-    engine.mimic(["spaghetti"], executable="italy")
-
 
 def test_clear():
     Breathe.clear()
