@@ -139,7 +139,7 @@ class Master(Grammar):
             extras = extras[0]
         for e in extras:
             assert isinstance(e, ElementBase)
-            self.global_extras.update({e.name: e})
+            self.global_extras[e.name] = e
 
     def load_modules(self, modules, namespace=""):
         """
@@ -255,11 +255,7 @@ class Master(Grammar):
             "manual_contexts"
         )
         self.add_rule(ContextSwitcher(self.command_context_dictlist))
-
-        rebuild_command = os.getenv("BREATHE_REBUILD_COMMAND")
-        if not rebuild_command:
-            rebuild_command = "rebuild everything"
-
+        rebuild_command = os.getenv("BREATHE_REBUILD_COMMAND") or "rebuild everything"
         self.add_rule(
             SimpleRule(
                 name="rebuilder",
@@ -314,16 +310,11 @@ class Master(Grammar):
 
             Enable the subgrammar which matches the window, and disable all others.
         """
-        start = time.time()
-
         active_contexts = tuple(
             [c.matches(executable, title, handle) for c in self.contexts]
         )
 
-        new = False
-
         if active_contexts not in self.grammar_map:
-            new = True
             matched_top_level_contexts = [
                 c.matches(executable, title, handle) for c in self.top_level_contexts
             ]
@@ -334,9 +325,4 @@ class Master(Grammar):
                 subgrammar.enable()
             else:
                 subgrammar.disable()
-
             subgrammar._process_begin()
-
-        elapsed = time.time()-start
-        if new:
-            print("Grammar added, took %ss" % elapsed)

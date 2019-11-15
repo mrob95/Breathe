@@ -15,28 +15,26 @@ def construct_extras(extras=None, defaults=None, global_extras=None, top_level=F
         In naming conflicts global extras will always be overridden, otherwise
         the later extra will win.
     """
-    if global_extras is None:
-        full_extras = {}
-    else:
-        full_extras = global_extras.copy()
-    if extras:
-        assert isinstance(extras, (list, tuple))
-        if defaults is None:
-            defaults = {}
-        assert isinstance(defaults, dict)
-        for e in extras:
-            assert isinstance(e, ElementBase)
-            if not top_level and isinstance(e, CommandsRef):
-                # Trying to add top level commands amongst normal CCR commands
-                # seems like a likely mistake so it needs to fail gracefully.
-                msg = "Attempting to use CommandsRef in commands which are not" \
-                    "marked as top level. Separate these commands from normal commands" \
-                    "and add them using 'Breathe.add_commands(..., top_level=True)."
-                warnings.warn_explicit(msg, ExtraSkippedWarning, str(e), 0)
-                continue
-            if not e.has_default() and e.name in defaults:
-                e._default = defaults[e.name]
-            full_extras[e.name] = e
+    full_extras = global_extras.copy() if global_extras else {}
+    defaults = defaults or {}
+    if not extras:
+        return full_extras
+    assert isinstance(extras, (list, tuple))
+    assert isinstance(defaults, dict)
+
+    for e in extras:
+        assert isinstance(e, ElementBase)
+        if not top_level and isinstance(e, CommandsRef):
+            # Trying to add top level commands amongst normal CCR commands
+            # seems like a likely mistake so it needs to fail gracefully.
+            msg = "Attempting to use CommandsRef in commands which are not" \
+                "marked as top level. Separate these commands from normal commands" \
+                "and add them using 'Breathe.add_commands(..., top_level=True)."
+            warnings.warn_explicit(msg, ExtraSkippedWarning, str(e), 0)
+            continue
+        if not e.has_default() and e.name in defaults:
+            e._default = defaults[e.name]
+        full_extras[e.name] = e
     return full_extras
 
 
