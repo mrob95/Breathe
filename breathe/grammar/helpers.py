@@ -1,11 +1,11 @@
 from dragonfly import ElementBase, Function, Repetition
 from ..elements import BoundCompound, CommandContext, CommandsRef
-from ..errors import CommandSkippedWarning, ModuleSkippedWarning, ExtraSkippedWarning
 from six import string_types, PY2
-import warnings
 import sys
 import importlib
+import logging
 
+logger = logging.getLogger("breathe_master")
 
 def construct_extras(extras=None, defaults=None, global_extras=None, top_level=False):
     """
@@ -27,10 +27,10 @@ def construct_extras(extras=None, defaults=None, global_extras=None, top_level=F
         if not top_level and isinstance(e, CommandsRef):
             # Trying to add top level commands amongst normal CCR commands
             # seems like a likely mistake so it needs to fail gracefully.
-            msg = "Attempting to use CommandsRef in commands which are not" \
+            msg = "Attempting to use '%s' in commands which are not" \
                 "marked as top level. Separate these commands from normal commands" \
-                "and add them using 'Breathe.add_commands(..., top_level=True)."
-            warnings.warn_explicit(msg, ExtraSkippedWarning, str(e), 0)
+                "and add them using 'Breathe.add_commands(..., top_level=True)'."
+            logger.error(msg, e)
             continue
         if not e.has_default() and e.name in defaults:
             e._default = defaults[e.name]
@@ -57,14 +57,8 @@ def construct_commands(mapping, extras=None):
             assert isinstance(spec, string_types)
             c = BoundCompound(spec, extras=extras, value=value)
             children.append(c)
-        except Exception as e:
-            # No need to raise, we can just skip this command
-            # Usually due to missing extras
-            if str(e).startswith("Unknown reference name"):
-                msg = "Missing extra"
-            else:
-                msg = str(e)
-            warnings.warn_explicit(msg, CommandSkippedWarning, str(spec), 0)
+        except Exception:
+            logger.error("Exception raised while processing '%s', command will be skipped.", spec)
     return children
 
 
@@ -132,6 +126,4 @@ def load_or_reload(module_name):
             else:
                 importlib.reload(module)
     except Exception as e:
-        warnings.warn_explicit(
-            "Import failed with '%s'" % str(e), ModuleSkippedWarning, module_name, 0
-        )
+        logger.error("Import of '%s' failed with '%s'", module_name, str(e))

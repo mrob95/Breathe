@@ -11,7 +11,6 @@ from .testutils import TText
 
 import pytest
 from breathe import Breathe, CommandContext
-from breathe.errors import CommandSkippedWarning, ExtraSkippedWarning
 from breathe.elements import CommandsRef, Exec
 import warnings
 
@@ -69,23 +68,21 @@ def test_recognition():
 
     engine.mimic("orange grapefruit are preferable to grapefruit")
     engine.mimic("orange grapefruit are preferable to lemon banana", executable="notepad")
+    assert len(Breathe.top_level_commands) == 2
 
 def test_top_level_command_failure():
-    with warnings.catch_warnings(record=True) as w:
-        Breathe.add_commands(
-            AppContext("china"),
-            {
-                "fruit from <sequence1> and <sequence2> [<n>]": TText("something")
-                + Exec("sequence1")
-                + TText("something else")
-                + Exec("sequence2")* Repeat("n")
-            },
-            extras=[CommandsRef("sequence1"), CommandsRef("sequence2", 2), IntegerRef("n", 1, 10, 1)],
-            top_level=False,
-        )
-        assert len(w) == 3
-        assert issubclass(w[0].category, ExtraSkippedWarning)
-        assert issubclass(w[2].category, CommandSkippedWarning)
+    Breathe.add_commands(
+        AppContext("china"),
+        {
+            "not marked top level <sequence1> and <sequence2> [<n>]": TText("something")
+            + Exec("sequence1")
+            + TText("something else")
+            + Exec("sequence2")* Repeat("n")
+        },
+        extras=[CommandsRef("sequence1"), CommandsRef("sequence2", 2), IntegerRef("n", 1, 10, 1)],
+        top_level=False,
+    )
+    assert len(Breathe.top_level_commands) == 2
 
 def test_clear():
     Breathe.clear()

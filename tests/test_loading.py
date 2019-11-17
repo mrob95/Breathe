@@ -1,19 +1,12 @@
 from .testutils import TText
-import pytest, os, warnings
+import pytest, os
 from dragonfly import get_engine, MimicFailure, AppContext
 from breathe import Breathe, CommandContext
-from breathe.errors import ModuleSkippedWarning
 from six import PY2
 engine = get_engine("text")
 
 script_dir = os.path.dirname(__file__)
 file_path = os.path.join(script_dir, "my_grammar/fruit.py")
-
-def test_failed_reload():
-    with warnings.catch_warnings(record=True) as w:
-        Breathe.reload_modules()
-        assert issubclass(w[0].category, Warning)
-
 
 def test_loading_failure():
     with open(file_path, "w") as f:
@@ -34,9 +27,9 @@ Breathe.add_commands(,,,
             "my_grammar": ["fruit"],
         }
     }
-    with warnings.catch_warnings(record=True) as w:
-        Breathe.load_modules(modules)
-        assert issubclass(w[0].category, ModuleSkippedWarning)
+    Breathe.load_modules(modules)
+    assert len(Breathe.modules) == 1
+    assert len(Breathe.core_commands) == 0
 
 def test_loading():
     with open(file_path, "w") as f:

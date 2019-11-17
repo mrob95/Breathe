@@ -11,8 +11,6 @@ from .testutils import TText
 
 import pytest
 from breathe import Breathe, CommandContext
-from breathe.errors import CommandSkippedWarning
-import warnings
 
 engine = get_engine("text")
 
@@ -74,16 +72,13 @@ def test_nomapping_commands():
 
 
 def test_invalid():
-    with warnings.catch_warnings(record=True) as w:
-        Breathe.add_commands(
-            AppContext("code.exe"),
-            {
-                "test that <nonexistent_extra>": TText("%(nonexistent_extra)s"),
-                1: TText("test"),
-            },
-        )
-        assert len(w) == 2
-        assert issubclass(w[0].category, CommandSkippedWarning)
+    Breathe.add_commands(
+        AppContext("code.exe"),
+        {
+            "test that <nonexistent_extra>": TText("%(nonexistent_extra)s"),
+            1: TText("test"),
+        },
+    )
     assert len(Breathe.contexts) == 1
     assert len(Breathe.context_commands) == 1
 

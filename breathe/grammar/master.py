@@ -19,8 +19,8 @@ from ..rules import SimpleRule, ContextSwitcher
 from ..elements import BoundCompound, CommandContext, TrueContext, CommandsRef
 
 from six import string_types
-import warnings
 import os, time
+import logging
 
 """
     Example:
@@ -49,6 +49,8 @@ class Master(Grammar):
 
     def __init__(self, **kwargs):
         Grammar.__init__(self, "Merger", context=None, **kwargs)
+
+        self._log = logging.getLogger("breathe_master")
 
         self.count = 0
         # List[Compound]
@@ -199,10 +201,7 @@ class Master(Grammar):
             Reload all modules loaded using load_modules.
         """
         if not self.modules:
-            warnings.warn(
-                "Nothing found to reload. For modules to be reloadable they must be loaded using 'Breathe.load_modules()'",
-                Warning,
-            )
+            self._log.warning("Nothing found to reload. For modules to be reloadable they must be loaded using 'Breathe.load_modules()'")
         else:
             self.clear()
             for module_name in self.modules:
