@@ -14,6 +14,10 @@ pip install dfly-breathe
 ```
 
 ## Instructions
+* If you are creating a command set from scratch, start by cloning the
+    [Breathe skeleton project](https://github.com/mrob95/breathe_skeleton),
+    which will give you a file structure to start with.
+
 ### Adding commands
 
 ```python
