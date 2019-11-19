@@ -1,4 +1,4 @@
-from .testutils import TText
+from .testutils import DoNothing
 import pytest, os
 from dragonfly import get_engine, MimicFailure, AppContext
 from breathe import Breathe, CommandContext
@@ -12,12 +12,12 @@ def test_loading_failure():
     with open(file_path, "w") as f:
         f.write("""
 from breathe import Breathe
-from ..testutils import TText
+from ..testutils import DoNothing
 
 Breathe.add_commands(,,,
     None,
     {
-        "apple": TText("fruit"),
+        "apple": DoNothing(),
     }
 )
 """
@@ -35,12 +35,12 @@ def test_loading():
     with open(file_path, "w") as f:
         f.write("""
 from breathe import Breathe
-from ..testutils import TText
+from ..testutils import DoNothing
 
 Breathe.add_commands(
     None,
     {
-        "apple": TText("fruit"),
+        "apple": DoNothing(),
     }
 )
 """
@@ -52,12 +52,12 @@ def test_reloading():
     with open(file_path, "w") as f:
         f.write("""
 from breathe import Breathe
-from ..testutils import TText
+from ..testutils import DoNothing
 
 Breathe.add_commands(
     None,
     {
-        "parsnip": TText("vegetable"),
+        "parsnip": DoNothing(),
     }
 )
 """

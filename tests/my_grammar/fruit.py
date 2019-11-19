@@ -1,10 +1,10 @@
 
 from breathe import Breathe
-from ..testutils import TText
+from ..testutils import DoNothing
 
 Breathe.add_commands(
     None,
     {
-        "parsnip": TText("vegetable"),
+        "parsnip": DoNothing(),
     }
 )

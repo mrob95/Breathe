@@ -7,7 +7,7 @@ from dragonfly import (
     Choice,
     Repeat,
 )
-from .testutils import TText
+from .testutils import DoNothing
 
 import pytest
 from breathe import Breathe, CommandContext
@@ -26,10 +26,10 @@ def test_core_commands():
     Breathe.add_commands(
         None,
         {
-            "test one": TText("1"),
-            "test two": TText("2"),
-            "test three": TText("3"),
-            "banana [<n>]": TText("banana") * Repeat("n"),
+            "test one": DoNothing(),
+            "test two": DoNothing(),
+            "test three": DoNothing(),
+            "banana [<n>]": DoNothing() * Repeat("n"),
         },
         [IntegerRef("n", 1, 10, 1)],
     )
@@ -39,7 +39,7 @@ def test_core_commands():
 def test_context_commands():
     Breathe.add_commands(
         AppContext("notepad"),
-        {"test [<num>]": lambda num: TText(num).execute()},
+        {"test [<num>]": lambda num: DoNothing().execute()},
         [Choice("num", {"four": "4", "five": "5", "six": "6"})],
         {"num": ""},
     )
@@ -51,7 +51,7 @@ def test_context_commands():
 def test_noccr_commands():
     Breathe.add_commands(
         AppContext("firefox"),
-        {"dictation <text>": TText("%(text)s"), "testing static": TText("Static")},
+        {"dictation <text>": DoNothing(), "testing static": DoNothing()},
         ccr=False,
     )
     engine.mimic(["testing", "static"], executable="firefox")
@@ -75,8 +75,8 @@ def test_invalid():
     Breathe.add_commands(
         AppContext("code.exe"),
         {
-            "test that <nonexistent_extra>": TText("%(nonexistent_extra)s"),
-            1: TText("test"),
+            "test that <nonexistent_extra>": DoNothing(),
+            1: DoNothing(),
         },
     )
     assert len(Breathe.contexts) == 1

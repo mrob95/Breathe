@@ -1,4 +1,4 @@
-from .testutils import TText
+from .testutils import DoNothing
 import pytest
 from dragonfly import get_engine, MimicFailure, AppContext
 from breathe import Breathe, CommandContext
@@ -8,8 +8,8 @@ engine = get_engine("text")
 def test_manual_context():
     Breathe.add_commands(
         CommandContext("test"),
-        {"pizza": TText("margarita"),
-        "curry": TText("wurst"),
+        {"pizza": DoNothing(),
+        "curry": DoNothing(),
         }
     )
     # Fails because the rule isn't enabled yet
@@ -21,7 +21,7 @@ def test_manual_context():
 def test_manual_context_noccr():
     Breathe.add_commands(
         CommandContext("test") | AppContext("italy"),
-        {"spaghetti": TText("bolognese")},
+        {"spaghetti": DoNothing()},
         ccr=False
     )
     # Loaded rule should be referencing the original
@@ -37,7 +37,7 @@ def test_manual_context_noccr():
 def test_negated_context():
     Breathe.add_commands(
         ~(CommandContext("america") | AppContext("england")),
-        {"steak": TText("chips"),
+        {"steak": DoNothing(),
         }
     )
     engine.mimic(["steak"])

@@ -7,7 +7,7 @@ from dragonfly import (
     Choice,
     Repeat,
 )
-from .testutils import TText
+from .testutils import DoNothing
 
 import pytest
 from breathe import Breathe, CommandContext
@@ -18,16 +18,16 @@ engine = get_engine("text")
 
 
 def test_top_level_command():
-    Breathe.add_commands(None, {"orange": TText("juice"), "grapefruit": TText("juice")})
+    Breathe.add_commands(None, {"orange": DoNothing(), "grapefruit": DoNothing()})
     Breathe.add_commands(
-        AppContext("notepad"), {"lemon": TText("juice"), "banana": TText("juice")}
+        AppContext("notepad"), {"lemon": DoNothing(), "banana": DoNothing()}
     )
     Breathe.add_commands(
         AppContext("notepad"),
         {
-            "fruit from <sequence1> and [<sequence2>] [<n>]": TText("something")
+            "fruit from <sequence1> and [<sequence2>] [<n>]": DoNothing()
             + Exec("sequence1")
-            + TText("something else")
+            + DoNothing()
             + Exec("sequence2")* Repeat("n")
         },
         extras=[CommandsRef("sequence1"), CommandsRef("sequence2", 2), IntegerRef("n", 1, 10, 1)],
@@ -36,16 +36,16 @@ def test_top_level_command():
 
 def test_top_level_command2():
     Breathe.add_commands(
-        AppContext(title="chrome"), {"pear": TText("juice"), "grape": TText("juice")}
+        AppContext(title="chrome"), {"pear": DoNothing(), "grape": DoNothing()}
     )
 
 def test_global_top_level():
     Breathe.add_commands(
         None,
         {
-            "<sequence1> are preferable to <sequence2>": TText("something")
+            "<sequence1> are preferable to <sequence2>": DoNothing()
             + Exec("sequence1")
-            + TText("something else")
+            + DoNothing()
             + Exec("sequence2")
         },
         extras=[CommandsRef("sequence1"), CommandsRef("sequence2", 3)],
@@ -74,9 +74,9 @@ def test_top_level_command_failure():
     Breathe.add_commands(
         AppContext("china"),
         {
-            "not marked top level <sequence1> and <sequence2> [<n>]": TText("something")
+            "not marked top level <sequence1> and <sequence2> [<n>]": DoNothing()
             + Exec("sequence1")
-            + TText("something else")
+            + DoNothing()
             + Exec("sequence2")* Repeat("n")
         },
         extras=[CommandsRef("sequence1"), CommandsRef("sequence2", 2), IntegerRef("n", 1, 10, 1)],

@@ -1,5 +1,5 @@
-from dragonfly import Text as TextBase
+from dragonfly import ActionBase
 
-class TText(TextBase):
+class DoNothing(ActionBase):
     def _execute(self, data):
         pass
