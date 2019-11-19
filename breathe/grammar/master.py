@@ -100,10 +100,14 @@ class Master(Grammar):
             ccr (bool) -- Whether these commands should be recognised continuously (default: True)
             top_level (bool) -- Whether these commands our top level, referencing sequences of normal commands (default: False)
         """
+        if not (context is None or isinstance(context, Context)):
+            self._log.error("Context must be None or dragonfly Context subclass, not '%s'", str(context))
+            return
         full_extras = construct_extras(extras, defaults, self.global_extras, top_level)
         children = construct_commands(mapping, full_extras)
         if not children:
             return
+
         if context is not None:
             context = check_for_manuals(
                 context, self.command_context_dictlist
@@ -119,14 +123,12 @@ class Master(Grammar):
             elif context is None:
                 self.core_commands.extend(children)
             else:
-                assert isinstance(context, Context)
                 self.context_commands.append(children)
                 self.contexts.append(context)
                 self._pad_matches()
         else:
             if context is None:
                 context = TrueContext()
-            assert isinstance(context, Context)
             self.top_level_commands.append(children)
             self.top_level_contexts.append(context)
 
