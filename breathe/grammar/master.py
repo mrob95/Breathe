@@ -243,9 +243,7 @@ class Master(Grammar):
             when the new context is inactive.
         """
         for k, v in self.grammar_map.copy().items():
-            padded = list(k)
-            padded.append(False)
-            matches = tuple(padded)
+            matches = tuple(list(k) + [False])
             if matches not in self.grammar_map:
                 self.grammar_map[matches] = v
 
