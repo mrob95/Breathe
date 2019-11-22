@@ -4,6 +4,7 @@ from six import string_types, PY2
 import sys
 import importlib
 import logging
+import traceback
 
 logger = logging.getLogger("breathe_master")
 
@@ -126,4 +127,5 @@ def load_or_reload(module_name):
             else:
                 importlib.reload(module)
     except Exception as e:
-        logger.error("Import of '%s' failed with '%s'", module_name, str(e))
+        logger.error("Import of '%s' failed with", module_name)
+        logger.exception(e)
