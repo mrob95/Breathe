@@ -197,7 +197,6 @@ class Master(Grammar):
 
     # ------------------------------------------------
     # Loading helpers
-
     def reload_modules(self):
         """
             Reload all modules loaded using load_modules.

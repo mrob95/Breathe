@@ -58,8 +58,9 @@ def construct_commands(mapping, extras=None):
             assert isinstance(spec, string_types)
             c = BoundCompound(spec, extras=extras, value=value)
             children.append(c)
-        except Exception:
+        except Exception as e:
             logger.error("Exception raised while processing '%s', command will be skipped.", spec)
+            logger.exception(e)
     return children
 
 
