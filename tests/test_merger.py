@@ -20,6 +20,8 @@ def test_global_extras():
     assert len(Breathe.global_extras) == 1
     assert "text" in Breathe.global_extras
     Breathe.add_global_extras([Choice("abc", {"def": "ghi"})])
+    # Check that this is overridden
+    Breathe.add_global_extras(IntegerRef("n", 1, 2, 1))
 
 
 def test_core_commands():
