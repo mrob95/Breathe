@@ -48,9 +48,12 @@ class Master(Grammar):
     MAX_REPETITIONS = 16
 
     def __init__(self, **kwargs):
+        self._log = logging.getLogger(__name__)
+        self._log.debug("Initialising breathe master grammar")
+
         Grammar.__init__(self, "Merger", context=None, **kwargs)
 
-        self._log = logging.getLogger("breathe_master")
+
 
         self.count = 0
         # List[Compound]
@@ -247,6 +250,7 @@ class Master(Grammar):
                 self.grammar_map[matches] = v
 
     def add_builtin_rules(self):
+        self._log.debug("Adding builtin rules.")
         # The DictList makes it easy to add new mappings from command context names
         # which will be recognised by the "enable/disable" command to the contexts themselves
         self.command_context_dictlist = DictList(
