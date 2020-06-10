@@ -1,4 +1,4 @@
-from dragonfly import ElementBase, Function, Repetition
+from dragonfly import ElementBase, Function, Repetition, RuleRef
 from ..elements import BoundCompound, CommandContext, CommandsRef
 from six import string_types, PY2
 import sys
@@ -64,7 +64,7 @@ def construct_commands(mapping, extras=None):
     return children
 
 
-def process_top_level_commands(command_lists, alts):
+def process_top_level_commands(command_lists, repeat_rule):
     """
         Once we have begun creating a new subgrammar, we have access to
         all of the ccr commands which will be active in this context (alts).
@@ -78,7 +78,7 @@ def process_top_level_commands(command_lists, alts):
         new_extras = {}
         for n, e in command_list[0]._extras.items():
             if isinstance(e, CommandsRef):
-                new_extras[n] = Repetition(alts, e.min, e.max, e.name, e.default)
+                new_extras[n] = RuleRef(repeat_rule, e.name, e.default)
             else:
                 new_extras[n] = e
         new_command_list = [

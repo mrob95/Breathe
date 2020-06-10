@@ -290,7 +290,7 @@ class Master(Grammar):
             command_lists = [
                 l for (l, b) in zip(self.top_level_commands, top_level_matches) if b
             ]
-            matched_top_level_commands = process_top_level_commands(command_lists, alts)
+            matched_top_level_commands = process_top_level_commands(command_lists, repeater)
             top_level_rules = SimpleRule(
                 name="CommandsRef%s" % self.counter(),
                 element=Alternative(matched_top_level_commands),
