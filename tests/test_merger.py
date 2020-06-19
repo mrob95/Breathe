@@ -85,5 +85,16 @@ def test_invalid():
     assert len(Breathe.context_commands) == 1
 
 
+def test_kaldi_weight_passthrough():
+    Breathe.add_commands(
+        None,
+        {
+            "test weight": DoNothing(),
+        },
+        weight=10.0,
+    )
+    assert Breathe.core_commands[-1].weight == 10.0
+
+# This should probably be done as set up and tear down, eh
 def test_clear():
     Breathe.clear()

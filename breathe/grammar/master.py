@@ -89,6 +89,7 @@ class Master(Grammar):
         defaults=None,
         ccr=True,
         top_level=False,
+        weight=None,
     ):
         """Add a set of commands which can be recognised continuously.
 
@@ -99,6 +100,7 @@ class Master(Grammar):
             defaults (dict) -- Defaults for the extras, if necessary (default: None)
             ccr (bool) -- Whether these commands should be recognised continuously (default: True)
             top_level (bool) -- Whether these commands our top level, referencing sequences of normal commands (default: False)
+            weight (float) -- Kaldi only. The recognition weight assigned to a group of commands (default None (kaldi default is 1.0))
         """
         if not (context is None or isinstance(context, Context)):
             self._log.error("Context must be None or dragonfly Context subclass, not '%s'", str(context))
@@ -112,6 +114,10 @@ class Master(Grammar):
             context = check_for_manuals(
                 context, self.command_context_dictlist
             )
+
+        if weight is not None:
+            for c in children:
+                c.weight = float(weight)
 
         if not top_level:
             if not ccr:
