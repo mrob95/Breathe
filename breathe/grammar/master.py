@@ -298,7 +298,7 @@ class Master(Grammar):
             ]
             matched_top_level_commands = process_top_level_commands(command_lists, alts)
             top_level_rules = SimpleRule(
-                name="CommandsRef%s" % self.counter(),
+                name="TopLevel%s" % self.counter(),
                 element=Alternative(matched_top_level_commands),
             )
             subgrammar.add_rule(top_level_rules)
