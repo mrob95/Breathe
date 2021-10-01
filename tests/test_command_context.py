@@ -24,9 +24,7 @@ def test_manual_context_noccr():
         {"spaghetti": DoNothing()},
         ccr=False
     )
-    # Loaded rule should be referencing the original
-    # "test" context loaded above, which should already be
-    # active
+    engine.mimic(["enable", "test"])
     engine.mimic(["spaghetti"])
     engine.mimic(["disable", "test"])
     with pytest.raises(MimicFailure):
