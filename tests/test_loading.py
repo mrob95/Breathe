@@ -8,7 +8,9 @@ engine = get_engine("text")
 script_dir = os.path.dirname(__file__)
 file_path = os.path.join(script_dir, "my_grammar/fruit.py")
 
+
 def test_loading_failure():
+    test_clear()
     with open(file_path, "w") as f:
         f.write("""
 from breathe import Breathe
