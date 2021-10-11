@@ -53,6 +53,10 @@ def test_global_top_level():
     )
 
 def test_recognition():
+    test_clear()
+    test_top_level_command()
+    test_top_level_command2()
+    test_global_top_level()
     engine.mimic("lemon", executable="notepad")
     engine.mimic("fruit from lemon banana orange and five", executable="notepad")
 
@@ -71,6 +75,10 @@ def test_recognition():
     assert len(Breathe.top_level_commands) == 2
 
 def test_top_level_command_failure():
+    test_clear()
+    test_top_level_command()
+    test_top_level_command2()
+    test_global_top_level()
     Breathe.add_commands(
         AppContext("china"),
         {
