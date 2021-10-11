@@ -16,6 +16,7 @@ engine = get_engine("text")
 
 
 def test_global_extras():
+    test_clear()
     Breathe.add_global_extras(Dictation("text"))
     assert len(Breathe.global_extras) == 1
     assert "text" in Breathe.global_extras
@@ -64,6 +65,11 @@ def test_noccr_commands():
 
 
 def test_grammar_numbers():
+    test_clear()
+    test_global_extras()
+    test_core_commands()
+    test_context_commands()
+    test_noccr_commands()
     engine.mimic(["test", "three"])
     # Ensure that we are not adding more grammars than necessary
     assert len(engine.grammars) == 4
